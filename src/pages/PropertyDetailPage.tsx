@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { 
@@ -9,9 +8,10 @@ import {
   MapPin, 
   Bed, 
   Bath, 
-  SquareFoot, 
+  Square, 
   Check, 
-  Calendar 
+  Calendar,
+  CalculatorIcon
 } from 'lucide-react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
@@ -40,16 +40,13 @@ const PropertyDetailPage = () => {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   
   useEffect(() => {
-    // Scroll to top when component mounts
     window.scrollTo(0, 0);
     
     if (id) {
       const propertyData = getPropertyById(id);
       setProperty(propertyData);
       
-      // Get similar properties (in a real app, this would be an API call)
       if (propertyData) {
-        // For demo, just get some other properties of the same type
         const recommended = user 
           ? getRecommendedProperties(user.id)
           : getPropertyById 
@@ -83,7 +80,6 @@ const PropertyDetailPage = () => {
   
   const toggleFavorite = () => {
     if (!user) {
-      // Prompt user to login
       return;
     }
     
@@ -98,7 +94,6 @@ const PropertyDetailPage = () => {
     <MainLayout>
       <div className="bg-gray-50 dark:bg-gray-900 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Navigation and Actions */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
             <div>
               <Link to="/properties" className="inline-flex items-center text-muted-foreground hover:text-primary transition">
@@ -126,14 +121,12 @@ const PropertyDetailPage = () => {
             </div>
           </div>
           
-          {/* Property Title */}
           <h1 className="text-3xl font-heading font-bold mb-2">{property.title}</h1>
           <div className="flex items-center text-muted-foreground mb-8">
             <MapPin size={16} className="mr-1" />
             <span>{property.location.address}</span>
           </div>
           
-          {/* Property Images Carousel */}
           <div className="mb-8">
             <Carousel className="w-full">
               <CarouselContent>
@@ -174,7 +167,6 @@ const PropertyDetailPage = () => {
           </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Property Details */}
             <div className="lg:col-span-2 space-y-8">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm text-center">
@@ -291,9 +283,7 @@ const PropertyDetailPage = () => {
               </Tabs>
             </div>
             
-            {/* Sidebar */}
             <div className="space-y-6">
-              {/* Agent Info */}
               <Card>
                 <CardContent className="p-6">
                   <h3 className="font-heading text-xl font-semibold mb-4">Contact Agent</h3>
@@ -323,7 +313,6 @@ const PropertyDetailPage = () => {
                 </CardContent>
               </Card>
               
-              {/* Mortgage Calculator Teaser */}
               <Card>
                 <CardContent className="p-6">
                   <h3 className="font-heading text-xl font-semibold mb-4">Mortgage Calculator</h3>
@@ -350,7 +339,7 @@ const PropertyDetailPage = () => {
                   </div>
                   <Link to="/calculator">
                     <Button variant="outline" className="w-full">
-                      <Calculator className="mr-2 h-4 w-4" />
+                      <CalculatorIcon className="mr-2 h-4 w-4" />
                       Calculate Construction Cost
                     </Button>
                   </Link>
@@ -359,7 +348,6 @@ const PropertyDetailPage = () => {
             </div>
           </div>
           
-          {/* Similar Properties */}
           {similarProperties.length > 0 && (
             <div className="mt-16">
               <h2 className="text-2xl font-heading font-semibold mb-6">You May Also Like</h2>

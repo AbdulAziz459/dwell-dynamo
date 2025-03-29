@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, Map, Bed, Bath, SquareFoot } from 'lucide-react';
+import { Heart, Map, Bed, Bath, Square } from 'lucide-react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -84,7 +84,7 @@ const PropertyCard = ({ property, isFavorite = false, onToggleFavorite }: Proper
               </div>
             )}
             <div className="flex items-center">
-              <SquareFoot size={16} className="mr-1" />
+              <Square size={16} className="mr-1" />
               <span className="text-xs">{formatArea(property.features.area)}</span>
             </div>
           </div>

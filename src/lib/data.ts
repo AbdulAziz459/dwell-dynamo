@@ -689,6 +689,7 @@ export interface User {
   email: string;
   password: string;
   phone?: string;
+  image?: string;
   favorites: string[];
   searchHistory: {
     query: string;
@@ -703,6 +704,7 @@ export const users: User[] = [
     email: 'john@example.com',
     password: 'password123',
     phone: '+92 300 1112233',
+    image: 'https://randomuser.me/api/portraits/men/32.jpg',
     favorites: ['1', '3', '5'],
     searchHistory: [
       { query: 'houses in F-7', timestamp: '2023-12-10T14:30:00Z' },
@@ -715,6 +717,7 @@ export const users: User[] = [
     name: 'Jane Smith',
     email: 'jane@example.com',
     password: 'password456',
+    image: 'https://randomuser.me/api/portraits/women/44.jpg',
     favorites: ['2', '4', '7'],
     searchHistory: [
       { query: 'plots in DHA', timestamp: '2023-11-20T10:30:00Z' },

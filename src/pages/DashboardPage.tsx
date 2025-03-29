@@ -1,226 +1,201 @@
 
-import { useState, useEffect } from 'react';
-import { Navigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { 
-  User, 
+  Building, 
   Heart, 
-  History, 
-  BrainCircuit, 
-  Search,
-  Calendar,
-  MessageSquare
+  MessageSquare, 
+  Clock, 
+  Search, 
+  LogOut,
+  Plus,
+  User
 } from 'lucide-react';
 import MainLayout from '@/components/layout/MainLayout';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Separator } from '@/components/ui/separator';
-import { getPropertyById, getRecommendedProperties } from '@/lib/data';
 import { useAuth } from '@/contexts/AuthContext';
-import { getInitials, dateTimeFormat } from '@/lib/utils';
-import PropertyCard from '@/components/properties/PropertyCard';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { formatDate } from '@/lib/utils';
+import MyProperties from '@/components/dashboard/MyProperties';
 
 const DashboardPage = () => {
-  const { user, isLoading, isPropertyFavorite, addToFavorites, removeFromFavorites } = useAuth();
-  const [favoriteProperties, setFavoriteProperties] = useState<any[]>([]);
-  const [recommendedProperties, setRecommendedProperties] = useState<any[]>([]);
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   
   useEffect(() => {
-    if (user) {
-      // Get favorite properties
-      const favorites = user.favorites
-        .map(id => getPropertyById(id))
-        .filter(Boolean);
-      setFavoriteProperties(favorites);
-      
-      // Get recommended properties
-      const recommended = getRecommendedProperties(user.id);
-      setRecommendedProperties(recommended);
+    if (!user) {
+      navigate('/login', { state: { returnUrl: '/dashboard' } });
     }
-  }, [user]);
+  }, [user, navigate]);
   
-  if (isLoading) {
+  if (!user) {
     return (
       <MainLayout>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-          <p>Loading...</p>
+        <div className="bg-gray-50 dark:bg-gray-900 py-12">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center">
+              <p>Please log in to view your dashboard</p>
+            </div>
+          </div>
         </div>
       </MainLayout>
     );
   }
   
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-  
-  const toggleFavorite = (propertyId: string) => {
-    if (isPropertyFavorite(propertyId)) {
-      removeFromFavorites(propertyId);
-    } else {
-      addToFavorites(propertyId);
-    }
-  };
-  
   return (
     <MainLayout>
-      <div className="bg-gray-50 dark:bg-gray-900 py-8 min-h-screen">
+      <div className="bg-gray-50 dark:bg-gray-900 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Header */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-8">
-            <div className="flex flex-col md:flex-row items-center">
-              <Avatar className="h-20 w-20 mb-4 md:mb-0 md:mr-6">
-                <AvatarImage src={`https://randomuser.me/api/portraits/${Math.random() > 0.5 ? 'men' : 'women'}/${Math.floor(Math.random() * 10)}.jpg`} />
-                <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
-              </Avatar>
-              <div className="text-center md:text-left">
-                <h1 className="text-2xl font-heading font-bold">{user.name}</h1>
-                <p className="text-muted-foreground">{user.email}</p>
-              </div>
-              <div className="mt-4 md:mt-0 md:ml-auto">
-                <Button variant="outline">Edit Profile</Button>
-              </div>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+            <div>
+              <h1 className="text-3xl font-heading font-bold">Dashboard</h1>
+              <p className="text-muted-foreground mt-1">Welcome back, {user.name}</p>
+            </div>
+            <div className="mt-4 md:mt-0 space-x-2">
+              <Button asChild>
+                <Link to="/add-property">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Property
+                </Link>
+              </Button>
+              <Button variant="outline" onClick={logout}>
+                <LogOut className="h-4 w-4 mr-2" />
+                Log Out
+              </Button>
             </div>
           </div>
           
-          {/* Dashboard Tabs */}
-          <Tabs defaultValue="favorites">
-            <TabsList className="grid grid-cols-4 mb-8">
-              <TabsTrigger value="favorites" className="flex flex-col items-center py-3">
-                <Heart className="h-5 w-5 mb-1" />
-                <span>Favorites</span>
-              </TabsTrigger>
-              <TabsTrigger value="recommendations" className="flex flex-col items-center py-3">
-                <BrainCircuit className="h-5 w-5 mb-1" />
-                <span>Recommendations</span>
-              </TabsTrigger>
-              <TabsTrigger value="history" className="flex flex-col items-center py-3">
-                <History className="h-5 w-5 mb-1" />
-                <span>Search History</span>
-              </TabsTrigger>
-              <TabsTrigger value="inquiries" className="flex flex-col items-center py-3">
-                <MessageSquare className="h-5 w-5 mb-1" />
-                <span>Inquiries</span>
-              </TabsTrigger>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">My Properties</CardTitle>
+                <Building className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">0</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Active property listings
+                </p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Saved Properties</CardTitle>
+                <Heart className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{user.favorites.length}</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Properties in your favorites list
+                </p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Messages</CardTitle>
+                <MessageSquare className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">0</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Unread messages in your inbox
+                </p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Recent Activity</CardTitle>
+                <Clock className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{user.searchHistory.length}</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Recent searches and actions
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <Tabs defaultValue="properties">
+            <TabsList className="grid grid-cols-3 w-full md:w-auto">
+              <TabsTrigger value="properties">My Properties</TabsTrigger>
+              <TabsTrigger value="favorites">Favorites</TabsTrigger>
+              <TabsTrigger value="account">Account</TabsTrigger>
             </TabsList>
             
-            <TabsContent value="favorites">
-              <h2 className="text-2xl font-heading font-semibold mb-6">Your Favorite Properties</h2>
-              
-              {favoriteProperties.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {favoriteProperties.map(property => (
-                    <PropertyCard
-                      key={property.id}
-                      property={property}
-                      isFavorite={true}
-                      onToggleFavorite={toggleFavorite}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
-                  <Heart className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <h3 className="text-xl font-medium mb-2">No favorite properties yet</h3>
-                  <p className="text-muted-foreground max-w-md mx-auto mb-6">
-                    When you find properties you like, click the heart icon to save them here for easy access.
-                  </p>
-                  <Button variant="outline" asChild>
-                    <a href="/properties">Browse Properties</a>
-                  </Button>
-                </div>
-              )}
+            <TabsContent value="properties" className="mt-6">
+              <MyProperties />
             </TabsContent>
             
-            <TabsContent value="recommendations">
-              <h2 className="text-2xl font-heading font-semibold mb-6">Recommended For You</h2>
-              
-              {recommendedProperties.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {recommendedProperties.map(property => (
-                    <PropertyCard
-                      key={property.id}
-                      property={property}
-                      isFavorite={isPropertyFavorite(property.id)}
-                      onToggleFavorite={toggleFavorite}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
-                  <BrainCircuit className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <h3 className="text-xl font-medium mb-2">No recommendations yet</h3>
-                  <p className="text-muted-foreground max-w-md mx-auto mb-6">
-                    Browse more properties or save favorites to get personalized recommendations based on your preferences.
-                  </p>
-                  <Button variant="outline" asChild>
-                    <a href="/properties">Browse Properties</a>
-                  </Button>
-                </div>
-              )}
-            </TabsContent>
-            
-            <TabsContent value="history">
-              <h2 className="text-2xl font-heading font-semibold mb-6">Your Search History</h2>
-              
-              {user.searchHistory.length > 0 ? (
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="text-left border-b">
-                          <th className="px-6 py-3 text-muted-foreground">Search Query</th>
-                          <th className="px-6 py-3 text-muted-foreground">Date</th>
-                          <th className="px-6 py-3 text-muted-foreground">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {user.searchHistory.map((item, index) => (
-                          <tr key={index} className="border-b last:border-b-0">
-                            <td className="px-6 py-4">
-                              <div className="flex items-center">
-                                <Search className="h-4 w-4 text-muted-foreground mr-2" />
-                                <span>{item.query}</span>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 text-muted-foreground">
-                              {dateTimeFormat(item.timestamp)}
-                            </td>
-                            <td className="px-6 py-4">
-                              <Button variant="link" size="sm" className="h-8 px-2">Repeat Search</Button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+            <TabsContent value="favorites" className="mt-6">
+              <div>
+                <h2 className="text-2xl font-heading font-semibold mb-6">Saved Properties</h2>
+                
+                {user.favorites.length === 0 ? (
+                  <div className="text-center py-12 px-4">
+                    <Heart className="h-12 w-12 mx-auto text-muted-foreground" />
+                    <h3 className="mt-4 text-lg font-medium">No Saved Properties</h3>
+                    <p className="mt-2 text-muted-foreground max-w-md mx-auto">
+                      You haven't saved any properties yet. Browse listings and click the heart icon to save properties here.
+                    </p>
+                    <Button className="mt-6" asChild>
+                      <Link to="/properties">
+                        <Search className="h-4 w-4 mr-2" />
+                        Browse Properties
+                      </Link>
+                    </Button>
                   </div>
-                </div>
-              ) : (
-                <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
-                  <History className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <h3 className="text-xl font-medium mb-2">No search history yet</h3>
-                  <p className="text-muted-foreground max-w-md mx-auto mb-6">
-                    Your search history will appear here as you browse and search for properties.
-                  </p>
-                  <Button variant="outline" asChild>
-                    <a href="/properties">Browse Properties</a>
-                  </Button>
-                </div>
-              )}
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {/* Favorite Properties would be mapped here */}
+                  </div>
+                )}
+              </div>
             </TabsContent>
             
-            <TabsContent value="inquiries">
-              <h2 className="text-2xl font-heading font-semibold mb-6">Your Property Inquiries</h2>
-              
-              <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
-                <MessageSquare className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-xl font-medium mb-2">No inquiries yet</h3>
-                <p className="text-muted-foreground max-w-md mx-auto mb-6">
-                  When you contact agents or request property viewings, your inquiries will appear here.
-                </p>
-                <Button variant="outline" asChild>
-                  <a href="/properties">Browse Properties</a>
-                </Button>
-              </div>
+            <TabsContent value="account" className="mt-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Account Information</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center space-x-4">
+                    <div className="bg-primary text-primary-foreground rounded-full p-3">
+                      <User className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <p className="font-semibold">{user.name}</p>
+                      <p className="text-sm text-muted-foreground">{user.email}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="pt-4 border-t">
+                    <h3 className="font-semibold mb-2">Recent Search History</h3>
+                    {user.searchHistory.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">No recent searches</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {user.searchHistory.slice(0, 5).map((search, index) => (
+                          <div key={index} className="flex justify-between items-center">
+                            <div className="flex items-center">
+                              <Search className="h-4 w-4 mr-2 text-muted-foreground" />
+                              <span className="text-sm">{search.query}</span>
+                            </div>
+                            <Badge variant="outline">
+                              {formatDate(search.timestamp)}
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
           </Tabs>
         </div>

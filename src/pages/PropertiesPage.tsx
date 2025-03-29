@@ -1,397 +1,254 @@
 
 import { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
-import { Filter, ChevronDown } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import MainLayout from '@/components/layout/MainLayout';
 import PropertyCard from '@/components/properties/PropertyCard';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Separator } from '@/components/ui/separator';
-import { properties, getPropertiesByType, Property } from '@/lib/data';
+import { getPropertiesByType } from '@/lib/data';
 import { useAuth } from '@/contexts/AuthContext';
+import { Property } from '@/lib/data';
+import { Slider } from '@/components/ui/slider';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const PropertiesPage = () => {
-  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [propertyType, setPropertyType] = useState(searchParams.get('type') || 'all');
+  const [propertyStatus, setPropertyStatus] = useState(searchParams.get('status') || 'all');
+  const [minPrice, setMinPrice] = useState(0);
+  const [maxPrice, setMaxPrice] = useState(100000000); // 100 million PKR
+  const [priceRange, setPriceRange] = useState<[number, number]>([minPrice, maxPrice]);
   const { user, isPropertyFavorite, addToFavorites, removeFromFavorites, addSearchQuery } = useAuth();
-  const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
-  const [filters, setFilters] = useState({
-    type: 'all',
-    status: 'all',
-    minPrice: '',
-    maxPrice: '',
-    bedrooms: 'any',
-    bathrooms: 'any',
-    features: [] as string[],
-    sortBy: 'newest',
-  });
-  
-  // Parse query parameters from URL on initial load
+
+  // Format price to display in a readable format
+  const formatPriceDisplay = (price: number) => {
+    if (price >= 10000000) {
+      return `${(price / 10000000).toFixed(2)} Cr`;
+    } else if (price >= 100000) {
+      return `${(price / 100000).toFixed(2)} Lac`;
+    } else if (price >= 1000) {
+      return `${(price / 1000).toFixed(2)}K`;
+    }
+    return price.toString();
+  };
+
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
+    // Get initial values from URL if available
+    const typeParam = searchParams.get('type');
+    const statusParam = searchParams.get('status');
+    const minPriceParam = searchParams.get('minPrice');
+    const maxPriceParam = searchParams.get('maxPrice');
     
-    // Extract and set filters from URL params
-    const typeParam = params.get('type') || 'all';
-    const statusParam = params.get('status') || 'all';
-    const minPriceParam = params.get('minPrice') || '';
-    const maxPriceParam = params.get('maxPrice') || '';
+    if (typeParam) setPropertyType(typeParam);
+    if (statusParam) setPropertyStatus(statusParam);
+    if (minPriceParam) setMinPrice(Number(minPriceParam));
+    if (maxPriceParam) setMaxPrice(Number(maxPriceParam));
     
-    setFilters(prev => ({
-      ...prev,
-      type: typeParam,
-      status: statusParam,
-      minPrice: minPriceParam,
-      maxPrice: maxPriceParam,
-    }));
+    // Set initial price range
+    if (minPriceParam || maxPriceParam) {
+      setPriceRange([
+        minPriceParam ? Number(minPriceParam) : minPrice,
+        maxPriceParam ? Number(maxPriceParam) : maxPrice
+      ]);
+    }
     
-    // Record search query for recommendations if user is logged in
+    loadProperties();
+  }, []);
+
+  useEffect(() => {
+    // Update URL parameters when filters change
+    const params = new URLSearchParams();
+    if (propertyType !== 'all') params.set('type', propertyType);
+    if (propertyStatus !== 'all') params.set('status', propertyStatus);
+    if (priceRange[0] > 0) params.set('minPrice', priceRange[0].toString());
+    if (priceRange[1] < 100000000) params.set('maxPrice', priceRange[1].toString());
+    
+    setSearchParams(params);
+    loadProperties();
+    
+    // Save search query for logged-in users
     if (user) {
-      const searchTerms = Array.from(params.entries())
-        .map(([key, value]) => `${key}:${value}`)
-        .join(', ');
+      const queryParts = [];
+      if (propertyType !== 'all') queryParts.push(propertyType);
+      if (propertyStatus !== 'all') queryParts.push(propertyStatus === 'sale' ? 'for sale' : 'for rent');
+      if (priceRange[0] > 0 || priceRange[1] < 100000000) {
+        queryParts.push(`${formatPriceDisplay(priceRange[0])} - ${formatPriceDisplay(priceRange[1])}`);
+      }
       
-      if (searchTerms) {
-        addSearchQuery(searchTerms);
+      if (queryParts.length > 0) {
+        addSearchQuery(queryParts.join(', '));
       }
     }
-  }, [location.search, user]);
-  
-  // Apply filters whenever they change
-  useEffect(() => {
-    let filtered = [...properties];
-    
-    // Filter by type
-    if (filters.type !== 'all') {
-      filtered = filtered.filter(property => property.type === filters.type);
-    }
-    
-    // Filter by status
-    if (filters.status !== 'all') {
-      filtered = filtered.filter(property => property.status === filters.status);
-    }
-    
-    // Filter by price range
-    if (filters.minPrice) {
-      filtered = filtered.filter(property => property.price >= Number(filters.minPrice));
-    }
-    if (filters.maxPrice) {
-      filtered = filtered.filter(property => property.price <= Number(filters.maxPrice));
-    }
-    
-    // Filter by bedrooms
-    if (filters.bedrooms !== 'any') {
-      const bedroomCount = Number(filters.bedrooms);
-      filtered = filtered.filter(property => 
-        filters.bedrooms === '4+' 
-          ? property.features.bedrooms >= 4
-          : property.features.bedrooms === bedroomCount
+  }, [propertyType, propertyStatus, priceRange]);
+
+  const loadProperties = async () => {
+    setLoading(true);
+    try {
+      const filteredProperties = getPropertiesByType(
+        propertyType === 'all' ? undefined : propertyType,
+        propertyStatus === 'all' ? undefined : propertyStatus,
+        priceRange[0],
+        priceRange[1]
       );
-    }
-    
-    // Filter by bathrooms
-    if (filters.bathrooms !== 'any') {
-      const bathroomCount = Number(filters.bathrooms);
-      filtered = filtered.filter(property => 
-        filters.bathrooms === '3+' 
-          ? property.features.bathrooms >= 3
-          : property.features.bathrooms === bathroomCount
-      );
-    }
-    
-    // Filter by features
-    if (filters.features.length > 0) {
-      filtered = filtered.filter(property => {
-        if (filters.features.includes('furnished') && !property.features.furnished) {
-          return false;
-        }
-        if (filters.features.includes('parking') && !property.features.parking) {
-          return false;
-        }
-        return true;
-      });
-    }
-    
-    // Sort properties
-    switch (filters.sortBy) {
-      case 'price-low':
-        filtered.sort((a, b) => a.price - b.price);
-        break;
-      case 'price-high':
-        filtered.sort((a, b) => b.price - a.price);
-        break;
-      case 'newest':
-        filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-        break;
-      case 'oldest':
-        filtered.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-        break;
-      default:
-        filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    }
-    
-    setFilteredProperties(filtered);
-  }, [filters]);
-  
-  const handleFilterChange = (key: string, value: string | string[]) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
-  };
-  
-  const toggleFeature = (feature: string) => {
-    setFilters(prev => {
-      const features = prev.features.includes(feature)
-        ? prev.features.filter(f => f !== feature)
-        : [...prev.features, feature];
-      return { ...prev, features };
-    });
-  };
-  
-  const toggleFavorite = (propertyId: string) => {
-    if (!user) {
-      // Prompt user to log in
-      return;
-    }
-    
-    if (isPropertyFavorite(propertyId)) {
-      removeFromFavorites(propertyId);
-    } else {
-      addToFavorites(propertyId);
+      setProperties(filteredProperties);
+    } catch (error) {
+      console.error('Error loading properties:', error);
+    } finally {
+      setLoading(false);
     }
   };
-  
+
+  const handleToggleFavorite = (id: string) => {
+    if (user) {
+      if (isPropertyFavorite(id)) {
+        removeFromFavorites(id);
+      } else {
+        addToFavorites(id);
+      }
+    }
+  };
+
   return (
     <MainLayout>
       <div className="bg-gray-50 dark:bg-gray-900 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
-            <div>
-              <h1 className="text-3xl font-heading font-bold">
-                {filters.type === 'all' ? 'All Properties' : `${filters.type.charAt(0).toUpperCase() + filters.type.slice(1)}s`}
-                {filters.status !== 'all' && ` for ${filters.status}`}
-              </h1>
-              <p className="text-muted-foreground mt-1">
-                {filteredProperties.length} properties found
-              </p>
+          <h1 className="text-3xl font-heading font-bold mb-2">Properties in Islamabad</h1>
+          <p className="text-muted-foreground mb-8">
+            Find your perfect property in Islamabad with our comprehensive listings
+          </p>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            {/* Filters */}
+            <div className="space-y-6 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm h-fit">
+              <h2 className="text-lg font-semibold">Filters</h2>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Property Type</label>
+                  <Select
+                    value={propertyType}
+                    onValueChange={(value) => setPropertyType(value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="All Types" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Types</SelectItem>
+                      <SelectItem value="house">House</SelectItem>
+                      <SelectItem value="apartment">Apartment</SelectItem>
+                      <SelectItem value="commercial">Commercial</SelectItem>
+                      <SelectItem value="plot">Plot</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Property Status</label>
+                  <Select
+                    value={propertyStatus}
+                    onValueChange={(value) => setPropertyStatus(value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="All Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="sale">For Sale</SelectItem>
+                      <SelectItem value="rent">For Rent</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium mb-4 block">Price Range</label>
+                  <div className="pt-6 pb-2">
+                    <Slider
+                      value={[priceRange[0], priceRange[1]]}
+                      min={0}
+                      max={100000000}
+                      step={1000000}
+                      onValueChange={(value) => {
+                        if (Array.isArray(value) && value.length === 2) {
+                          setPriceRange([value[0], value[1]]);
+                        }
+                      }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-sm text-muted-foreground">
+                    <span>{formatPriceDisplay(priceRange[0])}</span>
+                    <span>{formatPriceDisplay(priceRange[1])}</span>
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Bedrooms</label>
+                  <Select
+                    value="any"
+                    onValueChange={() => {}}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Any" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="any">Any</SelectItem>
+                      <SelectItem value="1">1+</SelectItem>
+                      <SelectItem value="2">2+</SelectItem>
+                      <SelectItem value="3">3+</SelectItem>
+                      <SelectItem value="4">4+</SelectItem>
+                      <SelectItem value="5">5+</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Bathrooms</label>
+                  <Select
+                    value="any"
+                    onValueChange={() => {}}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Any" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="any">Any</SelectItem>
+                      <SelectItem value="1">1+</SelectItem>
+                      <SelectItem value="2">2+</SelectItem>
+                      <SelectItem value="3">3+</SelectItem>
+                      <SelectItem value="4">4+</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </div>
             
-            <div className="flex items-center space-x-4 mt-4 md:mt-0">
-              <Select
-                value={filters.sortBy}
-                onValueChange={(value) => handleFilterChange('sortBy', value)}
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="newest">Newest First</SelectItem>
-                  <SelectItem value="oldest">Oldest First</SelectItem>
-                  <SelectItem value="price-low">Price: Low to High</SelectItem>
-                  <SelectItem value="price-high">Price: High to Low</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="outline" className="flex items-center">
-                    <Filter className="mr-2 h-4 w-4" />
-                    Filters
-                  </Button>
-                </SheetTrigger>
-                <SheetContent>
-                  <SheetHeader>
-                    <SheetTitle>Filter Properties</SheetTitle>
-                    <SheetDescription>
-                      Refine your search with these filters.
-                    </SheetDescription>
-                  </SheetHeader>
-                  
-                  <div className="py-4 space-y-6">
-                    <div>
-                      <Label htmlFor="status">Property Status</Label>
-                      <Select
-                        id="status"
-                        value={filters.status}
-                        onValueChange={(value) => handleFilterChange('status', value)}
-                      >
-                        <SelectTrigger className="w-full mt-1">
-                          <SelectValue placeholder="Select status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All</SelectItem>
-                          <SelectItem value="sale">For Sale</SelectItem>
-                          <SelectItem value="rent">For Rent</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="type">Property Type</Label>
-                      <Select
-                        id="type"
-                        value={filters.type}
-                        onValueChange={(value) => handleFilterChange('type', value)}
-                      >
-                        <SelectTrigger className="w-full mt-1">
-                          <SelectValue placeholder="Select type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Types</SelectItem>
-                          <SelectItem value="house">Houses</SelectItem>
-                          <SelectItem value="apartment">Apartments</SelectItem>
-                          <SelectItem value="commercial">Commercial</SelectItem>
-                          <SelectItem value="plot">Plots</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div>
-                      <Label>Price Range</Label>
-                      <div className="grid grid-cols-2 gap-2 mt-1">
-                        <Input
-                          type="number"
-                          placeholder="Min Price"
-                          value={filters.minPrice}
-                          onChange={(e) => handleFilterChange('minPrice', e.target.value)}
-                        />
-                        <Input
-                          type="number"
-                          placeholder="Max Price"
-                          value={filters.maxPrice}
-                          onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
-                        />
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="bedrooms">Bedrooms</Label>
-                      <Select
-                        id="bedrooms"
-                        value={filters.bedrooms}
-                        onValueChange={(value) => handleFilterChange('bedrooms', value)}
-                      >
-                        <SelectTrigger className="w-full mt-1">
-                          <SelectValue placeholder="Any" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="any">Any</SelectItem>
-                          <SelectItem value="1">1</SelectItem>
-                          <SelectItem value="2">2</SelectItem>
-                          <SelectItem value="3">3</SelectItem>
-                          <SelectItem value="4+">4+</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="bathrooms">Bathrooms</Label>
-                      <Select
-                        id="bathrooms"
-                        value={filters.bathrooms}
-                        onValueChange={(value) => handleFilterChange('bathrooms', value)}
-                      >
-                        <SelectTrigger className="w-full mt-1">
-                          <SelectValue placeholder="Any" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="any">Any</SelectItem>
-                          <SelectItem value="1">1</SelectItem>
-                          <SelectItem value="2">2</SelectItem>
-                          <SelectItem value="3+">3+</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <Separator />
-                    
-                    <div>
-                      <Label className="block mb-2">Features</Label>
-                      <div className="space-y-2">
-                        <div className="flex items-center space-x-2">
-                          <Checkbox 
-                            id="furnished" 
-                            checked={filters.features.includes('furnished')}
-                            onCheckedChange={() => toggleFeature('furnished')}
-                          />
-                          <label
-                            htmlFor="furnished"
-                            className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                          >
-                            Furnished
-                          </label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox 
-                            id="parking" 
-                            checked={filters.features.includes('parking')}
-                            onCheckedChange={() => toggleFeature('parking')}
-                          />
-                          <label
-                            htmlFor="parking"
-                            className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                          >
-                            Parking
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <Button className="w-full">Apply Filters</Button>
+            {/* Property Listings */}
+            <div className="lg:col-span-3">
+              {loading ? (
+                <div className="text-center py-12">Loading properties...</div>
+              ) : properties.length === 0 ? (
+                <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg">
+                  <h3 className="text-lg font-medium">No properties found</h3>
+                  <p className="text-muted-foreground mt-2">
+                    Try adjusting your search filters to find more properties
+                  </p>
+                </div>
+              ) : (
+                <div>
+                  <p className="text-muted-foreground mb-4">Found {properties.length} properties</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {properties.map(property => (
+                      <PropertyCard
+                        key={property.id}
+                        property={property}
+                        isFavorite={user ? isPropertyFavorite(property.id) : false}
+                        onToggleFavorite={handleToggleFavorite}
+                      />
+                    ))}
                   </div>
-                </SheetContent>
-              </Sheet>
+                </div>
+              )}
             </div>
           </div>
-          
-          {filteredProperties.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredProperties.map(property => (
-                <PropertyCard
-                  key={property.id}
-                  property={property}
-                  isFavorite={isPropertyFavorite(property.id)}
-                  onToggleFavorite={toggleFavorite}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-16">
-              <h3 className="text-xl font-medium mb-2">No properties found</h3>
-              <p className="text-muted-foreground">
-                Try adjusting your filters or search criteria
-              </p>
-              <Button 
-                variant="outline" 
-                className="mt-4"
-                onClick={() => setFilters({
-                  type: 'all',
-                  status: 'all',
-                  minPrice: '',
-                  maxPrice: '',
-                  bedrooms: 'any',
-                  bathrooms: 'any',
-                  features: [],
-                  sortBy: 'newest',
-                })}
-              >
-                Clear All Filters
-              </Button>
-            </div>
-          )}
         </div>
       </div>
     </MainLayout>

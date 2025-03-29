@@ -1,4 +1,3 @@
-
 export interface Property {
   id: string;
   title: string;
@@ -330,7 +329,237 @@ export const getPropertiesByType = (type?: string, status?: string, minPrice?: n
   return filteredProperties;
 };
 
-// Chat bot predefined responses
+export interface Message {
+  id: string;
+  senderId: string;
+  senderName: string;
+  senderImage?: string;
+  receiverId: string;
+  receiverName: string;
+  receiverImage?: string;
+  message: string;
+  createdAt: string;
+  read: boolean;
+  propertyId?: string;
+  propertyTitle?: string;
+}
+
+let messages: Message[] = [
+  {
+    id: 'm1',
+    senderId: 'u1',
+    senderName: 'John Doe',
+    senderImage: 'https://randomuser.me/api/portraits/men/32.jpg',
+    receiverId: 'a1',
+    receiverName: 'Ahmed Khan',
+    receiverImage: 'https://randomuser.me/api/portraits/men/1.jpg',
+    message: 'I am interested in the luxury villa in F-7. Is it still available?',
+    createdAt: '2023-12-18T10:30:00Z',
+    read: true,
+    propertyId: '1',
+    propertyTitle: 'Luxury Villa in F-7'
+  },
+  {
+    id: 'm2',
+    senderId: 'a1',
+    senderName: 'Ahmed Khan',
+    senderImage: 'https://randomuser.me/api/portraits/men/1.jpg',
+    receiverId: 'u1',
+    receiverName: 'John Doe',
+    receiverImage: 'https://randomuser.me/api/portraits/men/32.jpg',
+    message: 'Yes, it is still available. Would you like to schedule a viewing?',
+    createdAt: '2023-12-18T11:45:00Z',
+    read: true,
+    propertyId: '1',
+    propertyTitle: 'Luxury Villa in F-7'
+  },
+  {
+    id: 'm3',
+    senderId: 'u2',
+    senderName: 'Jane Smith',
+    senderImage: 'https://randomuser.me/api/portraits/women/44.jpg',
+    receiverId: 'a2',
+    receiverName: 'Sara Ali',
+    receiverImage: 'https://randomuser.me/api/portraits/women/2.jpg',
+    message: 'Is the apartment in Bahria Town pet-friendly?',
+    createdAt: '2023-12-19T09:15:00Z',
+    read: false,
+    propertyId: '2',
+    propertyTitle: 'Modern Apartment in Bahria Town'
+  }
+];
+
+export const addProperty = async (propertyData: Omit<Property, 'id' | 'createdAt'>) => {
+  try {
+    const newProperty: Property = {
+      id: `p${properties.length + 1}`,
+      ...propertyData,
+      createdAt: new Date().toISOString()
+    };
+    
+    properties.push(newProperty);
+    
+    return {
+      success: true,
+      propertyId: newProperty.id,
+      message: 'Property added successfully'
+    };
+  } catch (error) {
+    console.error('Error adding property:', error);
+    return {
+      success: false,
+      message: 'Failed to add property'
+    };
+  }
+};
+
+export const updateProperty = async (id: string, propertyData: Partial<Property>) => {
+  try {
+    const propertyIndex = properties.findIndex(p => p.id === id);
+    
+    if (propertyIndex === -1) {
+      return {
+        success: false,
+        message: 'Property not found'
+      };
+    }
+    
+    properties[propertyIndex] = {
+      ...properties[propertyIndex],
+      ...propertyData
+    };
+    
+    return {
+      success: true,
+      message: 'Property updated successfully'
+    };
+  } catch (error) {
+    console.error('Error updating property:', error);
+    return {
+      success: false,
+      message: 'Failed to update property'
+    };
+  }
+};
+
+export const deleteProperty = async (id: string) => {
+  try {
+    const propertyIndex = properties.findIndex(p => p.id === id);
+    
+    if (propertyIndex === -1) {
+      return {
+        success: false,
+        message: 'Property not found'
+      };
+    }
+    
+    properties.splice(propertyIndex, 1);
+    
+    return {
+      success: true,
+      message: 'Property deleted successfully'
+    };
+  } catch (error) {
+    console.error('Error deleting property:', error);
+    return {
+      success: false,
+      message: 'Failed to delete property'
+    };
+  }
+};
+
+export const getUserProperties = async (userId: string) => {
+  return properties.filter(property => property.agent.id === userId);
+};
+
+export const getMessages = async (userId: string) => {
+  return messages.filter(
+    message => message.senderId === userId || message.receiverId === userId
+  ).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+};
+
+export const sendMessage = async ({
+  senderId,
+  receiverId,
+  message,
+  propertyId,
+  propertyTitle
+}: {
+  senderId: string;
+  receiverId: string;
+  message: string;
+  propertyId?: string;
+  propertyTitle?: string;
+}) => {
+  try {
+    const sender = users.find(u => u.id === senderId);
+    const receiver = users.find(u => u.id === receiverId) || 
+                    properties.find(p => p.agent.id === receiverId)?.agent;
+    
+    if (!sender || !receiver) {
+      return {
+        success: false,
+        message: 'Sender or receiver not found'
+      };
+    }
+    
+    const newMessage: Message = {
+      id: `m${messages.length + 1}`,
+      senderId,
+      senderName: sender.name,
+      senderImage: sender.id.startsWith('a') 
+        ? sender.image 
+        : `https://ui-avatars.com/api/?name=${encodeURIComponent(sender.name)}&background=random`,
+      receiverId,
+      receiverName: receiver.name,
+      receiverImage: receiver.id.startsWith('a') 
+        ? receiver.image 
+        : `https://ui-avatars.com/api/?name=${encodeURIComponent(receiver.name)}&background=random`,
+      message,
+      createdAt: new Date().toISOString(),
+      read: false,
+      propertyId,
+      propertyTitle
+    };
+    
+    messages.push(newMessage);
+    
+    return {
+      success: true,
+      messageId: newMessage.id,
+      message: 'Message sent successfully'
+    };
+  } catch (error) {
+    console.error('Error sending message:', error);
+    return {
+      success: false,
+      message: 'Failed to send message'
+    };
+  }
+};
+
+export const markAsRead = async (userId: string, otherUserId: string) => {
+  try {
+    messages = messages.map(message => {
+      if (message.senderId === otherUserId && message.receiverId === userId && !message.read) {
+        return { ...message, read: true };
+      }
+      return message;
+    });
+    
+    return {
+      success: true,
+      message: 'Messages marked as read'
+    };
+  } catch (error) {
+    console.error('Error marking messages as read:', error);
+    return {
+      success: false,
+      message: 'Failed to mark messages as read'
+    };
+  }
+};
+
 export const chatbotResponses = {
   buying: {
     process: "To buy a property in Islamabad, you should start by determining your budget, researching areas, visiting properties, checking legal documents, making an offer, signing the sale deed, and registering the property.",
@@ -355,7 +584,6 @@ export const chatbotResponses = {
   }
 };
 
-// Construction cost calculation factors
 export interface MaterialType {
   id: string;
   name: string;
@@ -437,11 +665,9 @@ export const calculateConstructionCost = (
   const materialCost = area * material.costPerSqFt;
   const laborCost = labor.ratePerDay * durationDays;
   
-  // Assuming a typical labor team size based on project size
-  const teamSize = Math.ceil(area / 1000) + 2; // Basic formula: 1 additional worker per 1000 sq ft + 2 base workers
+  const teamSize = Math.ceil(area / 1000) + 2;
   const totalLaborCost = laborCost * teamSize;
   
-  // Additional costs (permits, design, utilities, etc.) - typically 15-20% of material costs
   const additionalCosts = materialCost * 0.18;
   
   const totalCost = materialCost + totalLaborCost + additionalCosts;
@@ -457,14 +683,13 @@ export const calculateConstructionCost = (
   };
 };
 
-// Dummy user data for authentication
 export interface User {
   id: string;
   name: string;
   email: string;
-  password: string; // In a real app, this would be hashed
+  password: string;
   phone?: string;
-  favorites: string[]; // Array of property IDs
+  favorites: string[];
   searchHistory: {
     query: string;
     timestamp: string;
@@ -520,16 +745,13 @@ export const getRecommendedProperties = (userId: string) => {
     return [];
   }
   
-  // Simple recommendation algorithm based on favorites and search history
   const favoriteProperties = user.favorites.map(id => getPropertyById(id)).filter(Boolean) as Property[];
   
-  // Extract property types, areas, and price ranges from favorites
   const favoriteTypes = new Set(favoriteProperties.map(p => p.type));
   const favoriteAreas = new Set(favoriteProperties.map(p => p.location.area));
   const favoritePriceMin = Math.min(...favoriteProperties.map(p => p.price)) * 0.8;
   const favoritePriceMax = Math.max(...favoriteProperties.map(p => p.price)) * 1.2;
   
-  // Find properties similar to favorites but not already favorited
   const recommendations = properties.filter(property => 
     !user.favorites.includes(property.id) && 
     (favoriteTypes.has(property.type) || 
@@ -537,7 +759,6 @@ export const getRecommendedProperties = (userId: string) => {
      (property.price >= favoritePriceMin && property.price <= favoritePriceMax))
   );
   
-  // Sort by relevance (more matching criteria = higher relevance)
   return recommendations.sort((a, b) => {
     let scoreA = 0;
     let scoreB = 0;
@@ -552,5 +773,14 @@ export const getRecommendedProperties = (userId: string) => {
     if (b.price >= favoritePriceMin && b.price <= favoritePriceMax) scoreB += 1;
     
     return scoreB - scoreA;
-  }).slice(0, 4); // Return top 4 recommendations
+  }).slice(0, 4);
+};
+
+export const formatDate = (dateString: string) => {
+  const options: Intl.DateTimeFormatOptions = { 
+    year: 'numeric', 
+    month: 'short', 
+    day: 'numeric' 
+  };
+  return new Date(dateString).toLocaleDateString('en-US', options);
 };

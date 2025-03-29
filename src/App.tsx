@@ -15,6 +15,8 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import DashboardPage from "./pages/DashboardPage";
 import NotFound from "./pages/NotFound";
+import AddPropertyPage from "./pages/AddPropertyPage";
+import MessagesPage from "./pages/MessagesPage";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +37,8 @@ const App = () => (
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/add-property" element={<AddPropertyPage />} />
+            <Route path="/messages" element={<MessagesPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, Map, Bed, Bath, Square } from 'lucide-react';
+import { Heart, Map, Bed, Bath, Square, MessageSquare } from 'lucide-react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -88,6 +88,19 @@ const PropertyCard = ({ property, isFavorite = false, onToggleFavorite }: Proper
               <span className="text-xs">{formatArea(property.features.area)}</span>
             </div>
           </div>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="text-primary hover:text-primary hover:bg-primary/10"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              window.location.href = `/property/${property.id}#contact`;
+            }}
+          >
+            <MessageSquare size={14} className="mr-1" />
+            <span className="text-xs">Contact</span>
+          </Button>
         </CardFooter>
       </Card>
     </Link>

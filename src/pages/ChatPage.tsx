@@ -7,64 +7,29 @@ import { Card, CardContent } from '@/components/ui/card';
 const ChatPage = () => {
   return (
     <MainLayout>
-      <div className="bg-gray-50 dark:bg-gray-900 py-8">
+      <div className="bg-gray-950 dark:bg-gray-950 text-white min-h-screen py-8">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
-            <h1 className="text-3xl font-heading font-bold">Property Assistant</h1>
-            <p className="text-muted-foreground mt-2">
+            <h1 className="text-3xl font-heading font-bold text-white flex items-center gap-2">
+              <Bot className="h-8 w-8 text-teal-400" />
+              Property Assistant
+            </h1>
+            <p className="text-gray-400 mt-2">
               Get quick answers to your property queries from our intelligent chatbot
             </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <Card className="bg-white dark:bg-gray-800 shadow-sm">
-              <CardContent className="p-4 flex items-start">
-                <MessageSquareText className="text-primary h-10 w-10 mr-3 flex-shrink-0" />
-                <div>
-                  <h3 className="font-medium">Instant Answers</h3>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Get immediate responses to your property questions without waiting
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-white dark:bg-gray-800 shadow-sm">
-              <CardContent className="p-4 flex items-start">
-                <BrainCircuit className="text-primary h-10 w-10 mr-3 flex-shrink-0" />
-                <div>
-                  <h3 className="font-medium">Market Knowledge</h3>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Access up-to-date information about property rates and market trends
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-white dark:bg-gray-800 shadow-sm">
-              <CardContent className="p-4 flex items-start">
-                <Building className="text-primary h-10 w-10 mr-3 flex-shrink-0" />
-                <div>
-                  <h3 className="font-medium">Buying & Renting Advice</h3>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Learn about property processes, documentation, and best practices
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
           </div>
           
           <div className="mb-8">
             <PropertyChatbot />
           </div>
-          
-          <Card className="bg-white dark:bg-gray-800 shadow-sm mb-8">
+
+          <Card className="bg-gray-900 border-gray-800 shadow-md mt-8">
             <CardContent className="p-6">
               <div className="flex items-start">
-                <Bot className="h-6 w-6 text-primary mr-3 mt-1 flex-shrink-0" />
+                <Bot className="h-6 w-6 text-teal-400 mr-3 mt-1 flex-shrink-0" />
                 <div>
-                  <h2 className="text-xl font-heading font-semibold">About the Property Assistant</h2>
-                  <p className="text-muted-foreground mt-2">
+                  <h2 className="text-xl font-heading font-semibold text-white">About the Property Assistant</h2>
+                  <p className="text-gray-400 mt-2">
                     Our Property Assistant is designed to help you navigate the real estate market in Islamabad. 
                     It can answer questions about buying, renting, and investing in properties, as well as provide
                     information about current property rates in different areas. For more complex inquiries or 
@@ -74,6 +39,56 @@ const ChatPage = () => {
               </div>
             </CardContent>
           </Card>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
+            <Card className="bg-gray-900 border-gray-800 shadow-md hover:bg-gray-800 transition-all">
+              <CardContent className="p-4 flex items-start">
+                <MessageSquareText className="text-teal-400 h-6 w-6 mr-3 flex-shrink-0" />
+                <div>
+                  <h3 className="font-medium text-white">Buying Process</h3>
+                  <p className="text-sm text-gray-400 mt-1">
+                    Learn about property buying procedures
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="bg-gray-900 border-gray-800 shadow-md hover:bg-gray-800 transition-all">
+              <CardContent className="p-4 flex items-start">
+                <Building className="text-teal-400 h-6 w-6 mr-3 flex-shrink-0" />
+                <div>
+                  <h3 className="font-medium text-white">Investment Areas</h3>
+                  <p className="text-sm text-gray-400 mt-1">
+                    Discover profitable investment locations
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="bg-gray-900 border-gray-800 shadow-md hover:bg-gray-800 transition-all">
+              <CardContent className="p-4 flex items-start">
+                <BrainCircuit className="text-teal-400 h-6 w-6 mr-3 flex-shrink-0" />
+                <div>
+                  <h3 className="font-medium text-white">F-Sector Rates</h3>
+                  <p className="text-sm text-gray-400 mt-1">
+                    Current property rates in F sectors
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="bg-gray-900 border-gray-800 shadow-md hover:bg-gray-800 transition-all">
+              <CardContent className="p-4 flex items-start">
+                <BrainCircuit className="text-teal-400 h-6 w-6 mr-3 flex-shrink-0" />
+                <div>
+                  <h3 className="font-medium text-white">Market Trends</h3>
+                  <p className="text-sm text-gray-400 mt-1">
+                    Latest real estate market analysis
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </MainLayout>

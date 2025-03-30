@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { chatbotResponses } from '@/lib/data';
-import { Send, Bot, Building, Home, User, HelpCircle, MessageSquare, Clock, BarChart, DollarSign, MapPin, BriefcaseBusiness } from 'lucide-react';
+import { Send, Bot, Home, User, HelpCircle, MessageSquare, Building, MapPin, BarChart } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -220,28 +219,28 @@ const PropertyChatbot = () => {
   };
   
   return (
-    <Card className="shadow-md border dark:border-gray-700">
-      <CardHeader className="pb-2 pt-4 px-4">
-        <CardTitle className="flex items-center text-lg">
-          <Bot className="h-5 w-5 mr-2 text-primary" />
+    <Card className="shadow-md border-gray-800 bg-gray-900 text-white">
+      <CardHeader className="pb-2 pt-4 px-4 border-b border-gray-800">
+        <CardTitle className="flex items-center text-lg text-white">
+          <Bot className="h-5 w-5 mr-2 text-teal-400" />
           Property Assistant
         </CardTitle>
       </CardHeader>
       
       <Tabs defaultValue="chat" className="flex flex-col h-[520px]">
-        <TabsList className="grid grid-cols-2 mx-4 mb-2">
-          <TabsTrigger value="chat" className="flex items-center">
+        <TabsList className="grid grid-cols-2 mx-4 mb-2 bg-gray-800">
+          <TabsTrigger value="chat" className="flex items-center data-[state=active]:bg-gray-700">
             <MessageSquare className="h-4 w-4 mr-2" />
             Chat
           </TabsTrigger>
-          <TabsTrigger value="topics" className="flex items-center">
+          <TabsTrigger value="topics" className="flex items-center data-[state=active]:bg-gray-700">
             <HelpCircle className="h-4 w-4 mr-2" />
             Topics
           </TabsTrigger>
         </TabsList>
         
         <TabsContent value="chat" className="flex-1 flex flex-col m-0 p-0 h-full overflow-hidden">
-          <ScrollArea className="flex-1 p-4">
+          <ScrollArea className="flex-1 p-4 bg-gray-950">
             <div className="space-y-4">
               {messages.map((message) => (
                 <div
@@ -255,21 +254,21 @@ const PropertyChatbot = () => {
                       message.sender === 'user' ? 'flex-row-reverse' : ''
                     }`}
                   >
-                    <Avatar className={`h-8 w-8 ${message.sender === 'user' ? 'ml-2' : 'mr-2'}`}>
+                    <Avatar className={`h-8 w-8 ${message.sender === 'user' ? 'ml-2' : 'mr-2'} bg-gray-800`}>
                       {message.sender === 'user' ? (
                         <AvatarImage src="/placeholder.svg" />
                       ) : (
                         <AvatarImage src="/placeholder.svg" />
                       )}
-                      <AvatarFallback>
+                      <AvatarFallback className={message.sender === 'user' ? 'bg-teal-700' : 'bg-gray-700'}>
                         {message.sender === 'user' ? <User size={14} /> : <Bot size={14} />}
                       </AvatarFallback>
                     </Avatar>
                     <div
                       className={`rounded-lg p-3 ${
                         message.sender === 'user'
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-muted'
+                          ? 'bg-teal-600 text-white'
+                          : 'bg-gray-800 text-white'
                       }`}
                     >
                       <p className="text-sm whitespace-pre-wrap">{message.text}</p>
@@ -287,7 +286,7 @@ const PropertyChatbot = () => {
             </div>
           </ScrollArea>
           
-          <div className="p-4 border-t dark:border-gray-700">
+          <div className="p-4 border-t border-gray-800 bg-gray-900">
             <div className="flex gap-2">
               <Input
                 placeholder="Type your question..."
@@ -298,9 +297,9 @@ const PropertyChatbot = () => {
                     handleSendMessage();
                   }
                 }}
-                className="flex-1"
+                className="flex-1 bg-gray-800 border-gray-700 text-white placeholder:text-gray-400"
               />
-              <Button onClick={() => handleSendMessage()} size="icon">
+              <Button onClick={() => handleSendMessage()} size="icon" className="bg-teal-600 hover:bg-teal-700">
                 <Send className="h-4 w-4" />
               </Button>
             </div>
@@ -308,7 +307,7 @@ const PropertyChatbot = () => {
               <Button
                 variant="outline"
                 size="sm"
-                className="text-xs"
+                className="text-xs border-gray-700 bg-gray-800 hover:bg-gray-700 text-white"
                 onClick={() => handleSuggestedQuery("How to buy property in Islamabad?")}
               >
                 Buying Process
@@ -316,7 +315,7 @@ const PropertyChatbot = () => {
               <Button
                 variant="outline"
                 size="sm"
-                className="text-xs"
+                className="text-xs border-gray-700 bg-gray-800 hover:bg-gray-700 text-white"
                 onClick={() => handleSuggestedQuery("Best property investment areas?")}
               >
                 Investment Areas
@@ -324,7 +323,7 @@ const PropertyChatbot = () => {
               <Button
                 variant="outline"
                 size="sm"
-                className="text-xs"
+                className="text-xs border-gray-700 bg-gray-800 hover:bg-gray-700 text-white"
                 onClick={() => handleSuggestedQuery("Property rates in F sectors?")}
               >
                 F-Sector Rates
@@ -332,7 +331,7 @@ const PropertyChatbot = () => {
               <Button
                 variant="outline"
                 size="sm"
-                className="text-xs"
+                className="text-xs border-gray-700 bg-gray-800 hover:bg-gray-700 text-white"
                 onClick={() => handleSuggestedQuery("Current real estate market trends?")}
               >
                 Market Trends
@@ -342,11 +341,11 @@ const PropertyChatbot = () => {
         </TabsContent>
         
         <TabsContent value="topics" className="flex-1 m-0 p-0 overflow-hidden">
-          <ScrollArea className="h-full p-4">
+          <ScrollArea className="h-full p-4 bg-gray-950">
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold flex items-center mb-3">
-                  <Home className="h-5 w-5 mr-2 text-primary" />
+                <h3 className="text-lg font-semibold flex items-center mb-3 text-white">
+                  <Home className="h-5 w-5 mr-2 text-teal-400" />
                   Buying Property
                 </h3>
                 <div className="grid grid-cols-1 gap-2">
@@ -356,7 +355,7 @@ const PropertyChatbot = () => {
                       <Button
                         key={query.id}
                         variant="outline"
-                        className="justify-start h-auto py-2 px-3 text-left"
+                        className="justify-start h-auto py-2 px-3 text-left border-gray-700 bg-gray-800 hover:bg-gray-700 text-white"
                         onClick={() => handleSuggestedQuery(query.text)}
                       >
                         {query.text}
@@ -366,8 +365,8 @@ const PropertyChatbot = () => {
               </div>
               
               <div>
-                <h3 className="text-lg font-semibold flex items-center mb-3">
-                  <Home className="h-5 w-5 mr-2 text-primary" />
+                <h3 className="text-lg font-semibold flex items-center mb-3 text-white">
+                  <Home className="h-5 w-5 mr-2 text-teal-400" />
                   Renting Property
                 </h3>
                 <div className="grid grid-cols-1 gap-2">
@@ -377,7 +376,7 @@ const PropertyChatbot = () => {
                       <Button
                         key={query.id}
                         variant="outline"
-                        className="justify-start h-auto py-2 px-3 text-left"
+                        className="justify-start h-auto py-2 px-3 text-left border-gray-700 bg-gray-800 hover:bg-gray-700 text-white"
                         onClick={() => handleSuggestedQuery(query.text)}
                       >
                         {query.text}
@@ -387,8 +386,8 @@ const PropertyChatbot = () => {
               </div>
               
               <div>
-                <h3 className="text-lg font-semibold flex items-center mb-3">
-                  <Building className="h-5 w-5 mr-2 text-primary" />
+                <h3 className="text-lg font-semibold flex items-center mb-3 text-white">
+                  <Building className="h-5 w-5 mr-2 text-teal-400" />
                   Investment Advice
                 </h3>
                 <div className="grid grid-cols-1 gap-2">
@@ -398,7 +397,7 @@ const PropertyChatbot = () => {
                       <Button
                         key={query.id}
                         variant="outline"
-                        className="justify-start h-auto py-2 px-3 text-left"
+                        className="justify-start h-auto py-2 px-3 text-left border-gray-700 bg-gray-800 hover:bg-gray-700 text-white"
                         onClick={() => handleSuggestedQuery(query.text)}
                       >
                         {query.text}
@@ -408,8 +407,8 @@ const PropertyChatbot = () => {
               </div>
               
               <div>
-                <h3 className="text-lg font-semibold flex items-center mb-3">
-                  <MapPin className="h-5 w-5 mr-2 text-primary" />
+                <h3 className="text-lg font-semibold flex items-center mb-3 text-white">
+                  <MapPin className="h-5 w-5 mr-2 text-teal-400" />
                   Property Rates
                 </h3>
                 <div className="grid grid-cols-1 gap-2">
@@ -419,7 +418,7 @@ const PropertyChatbot = () => {
                       <Button
                         key={query.id}
                         variant="outline"
-                        className="justify-start h-auto py-2 px-3 text-left"
+                        className="justify-start h-auto py-2 px-3 text-left border-gray-700 bg-gray-800 hover:bg-gray-700 text-white"
                         onClick={() => handleSuggestedQuery(query.text)}
                       >
                         {query.text}
@@ -429,8 +428,8 @@ const PropertyChatbot = () => {
               </div>
               
               <div>
-                <h3 className="text-lg font-semibold flex items-center mb-3">
-                  <BarChart className="h-5 w-5 mr-2 text-primary" />
+                <h3 className="text-lg font-semibold flex items-center mb-3 text-white">
+                  <BarChart className="h-5 w-5 mr-2 text-teal-400" />
                   Market Trends
                 </h3>
                 <div className="grid grid-cols-1 gap-2">
@@ -440,7 +439,7 @@ const PropertyChatbot = () => {
                       <Button
                         key={query.id}
                         variant="outline"
-                        className="justify-start h-auto py-2 px-3 text-left"
+                        className="justify-start h-auto py-2 px-3 text-left border-gray-700 bg-gray-800 hover:bg-gray-700 text-white"
                         onClick={() => handleSuggestedQuery(query.text)}
                       >
                         {query.text}

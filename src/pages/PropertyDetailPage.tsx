@@ -354,12 +354,19 @@ const PropertyDetailPage = () => {
                       <span className="font-medium text-primary">{formatPrice((property.price * 0.8) / 240)}</span>
                     </div>
                   </div>
-                  <Link to="/calculator">
-                    <Button variant="outline" className="w-full mt-4">
-                      <CalculatorIcon className="mr-2 h-4 w-4" />
-                      Calculate Construction Cost
-                    </Button>
-                  </Link>
+                  <div className="flex flex-col space-y-2 mt-4">
+                    <Link to="/calculator">
+                      <Button variant="outline" className="w-full">
+                        <CalculatorIcon className="mr-2 h-4 w-4" />
+                        Estimate Construction Cost
+                      </Button>
+                    </Link>
+                    {property.type === 'plot' && (
+                      <p className="text-xs text-muted-foreground text-center mt-1">
+                        Planning to build? Use our calculator to estimate construction costs.
+                      </p>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             </div>

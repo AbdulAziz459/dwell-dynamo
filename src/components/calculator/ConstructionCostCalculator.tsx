@@ -7,9 +7,28 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/components/ui/use-toast';
-import { Calculator, ArrowRight, Building, Ruler, Users, Banknote } from 'lucide-react';
+import { Calculator, ArrowRight, Building, Ruler, Users, Banknote, PieChart } from 'lucide-react';
 import { materialTypes, laborRates, calculateConstructionCost } from '@/lib/data';
 import { formatPrice } from '@/lib/utils';
+import { 
+  PieChart as RechartsPieChart, 
+  Pie, 
+  Cell, 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  Legend,
+  ResponsiveContainer
+} from 'recharts';
+import { 
+  Tabs, 
+  TabsContent, 
+  TabsList, 
+  TabsTrigger 
+} from '@/components/ui/tabs';
 
 const ConstructionCostCalculator = () => {
   const { toast } = useToast();
@@ -67,6 +86,49 @@ const ConstructionCostCalculator = () => {
   const getSelectedLabor = () => {
     return laborRates.find(l => l.id === laborRate);
   };
+
+  const getPieChartData = () => {
+    if (!result) return [];
+    
+    return [
+      { name: 'Material', value: result.materialCost, fill: '#8884d8' },
+      { name: 'Labor', value: result.laborCost, fill: '#82ca9d' },
+      { name: 'Additional', value: result.additionalCosts, fill: '#ffc658' }
+    ];
+  };
+
+  const getBarChartData = () => {
+    if (!result) return [];
+
+    return [
+      {
+        name: 'Cost Breakdown',
+        'Material Cost': result.materialCost,
+        'Labor Cost': result.laborCost,
+        'Additional Costs': result.additionalCosts,
+      }
+    ];
+  };
+
+  const getCostComparisonData = () => {
+    if (!result) return [];
+
+    const costPerSqFt = result.totalCost / area;
+    const avgMarketRate = 12000; // Average market rate for construction in PKR
+    
+    return [
+      {
+        name: 'Your Estimate',
+        value: costPerSqFt
+      },
+      {
+        name: 'Avg. Market Rate',
+        value: avgMarketRate
+      }
+    ];
+  };
+
+  const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042'];
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -193,28 +255,89 @@ const ConstructionCostCalculator = () => {
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <div className="flex justify-between pb-2 border-b">
-                  <span className="text-muted-foreground">Material Cost</span>
-                  <span className="font-medium">{formatPrice(result.materialCost)}</span>
-                </div>
-                <div className="flex justify-between pb-2 border-b">
-                  <span className="text-muted-foreground">Labor Cost</span>
-                  <span className="font-medium">{formatPrice(result.laborCost)}</span>
-                </div>
-                <div className="flex justify-between pb-2 border-b">
-                  <span className="text-muted-foreground">Additional Costs (18%)</span>
-                  <span className="font-medium">{formatPrice(result.additionalCosts)}</span>
-                </div>
-                <Separator className="my-4" />
-                <div className="flex justify-between items-center">
-                  <span className="text-lg font-semibold">Total Cost</span>
-                  <div className="text-right">
-                    <span className="text-2xl font-bold text-primary">{formatPrice(result.totalCost)}</span>
-                    <p className="text-sm text-muted-foreground">{formatPrice(result.totalCost / area)} per sq.ft.</p>
+              <Tabs defaultValue="text" className="w-full">
+                <TabsList className="grid grid-cols-2 mb-4">
+                  <TabsTrigger value="text">Text View</TabsTrigger>
+                  <TabsTrigger value="charts">Charts</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="text" className="space-y-4">
+                  <div className="flex justify-between pb-2 border-b">
+                    <span className="text-muted-foreground">Material Cost</span>
+                    <span className="font-medium">{formatPrice(result.materialCost)}</span>
                   </div>
-                </div>
-              </div>
+                  <div className="flex justify-between pb-2 border-b">
+                    <span className="text-muted-foreground">Labor Cost</span>
+                    <span className="font-medium">{formatPrice(result.laborCost)}</span>
+                  </div>
+                  <div className="flex justify-between pb-2 border-b">
+                    <span className="text-muted-foreground">Additional Costs (18%)</span>
+                    <span className="font-medium">{formatPrice(result.additionalCosts)}</span>
+                  </div>
+                  <Separator className="my-4" />
+                  <div className="flex justify-between items-center">
+                    <span className="text-lg font-semibold">Total Cost</span>
+                    <div className="text-right">
+                      <span className="text-2xl font-bold text-primary">{formatPrice(result.totalCost)}</span>
+                      <p className="text-sm text-muted-foreground">{formatPrice(result.totalCost / area)} per sq.ft.</p>
+                    </div>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="charts" className="space-y-6">
+                  <div>
+                    <h4 className="font-medium text-sm text-center mb-2">Cost Distribution</h4>
+                    <div className="h-[250px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <RechartsPieChart>
+                          <Pie
+                            data={getPieChartData()}
+                            cx="50%"
+                            cy="50%"
+                            labelLine={false}
+                            outerRadius={80}
+                            fill="#8884d8"
+                            dataKey="value"
+                            label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                          >
+                            {getPieChartData().map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip formatter={(value) => formatPrice(Number(value))} />
+                          <Legend />
+                        </RechartsPieChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-medium text-sm text-center mb-2">Cost Breakdown</h4>
+                    <div className="h-[250px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          data={getBarChartData()}
+                          margin={{
+                            top: 5,
+                            right: 30,
+                            left: 20,
+                            bottom: 5,
+                          }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="name" />
+                          <YAxis tickFormatter={(value) => `${(value / 1000000).toFixed(1)}M`} />
+                          <Tooltip formatter={(value) => formatPrice(Number(value))} />
+                          <Legend />
+                          <Bar dataKey="Material Cost" fill="#8884d8" />
+                          <Bar dataKey="Labor Cost" fill="#82ca9d" />
+                          <Bar dataKey="Additional Costs" fill="#ffc658" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
 
               <div className="rounded-lg bg-muted/50 p-4 mt-6">
                 <div className="flex items-start">

@@ -220,27 +220,27 @@ const PropertyChatbot = () => {
   };
   
   return (
-    <Card className="flex flex-col h-[calc(100vh-18rem)] shadow-md">
-      <CardHeader className="pb-2">
-        <CardTitle className="flex items-center">
+    <Card className="shadow-md border dark:border-gray-700">
+      <CardHeader className="pb-2 pt-4 px-4">
+        <CardTitle className="flex items-center text-lg">
           <Bot className="h-5 w-5 mr-2 text-primary" />
           Property Assistant
         </CardTitle>
       </CardHeader>
       
-      <Tabs defaultValue="chat" className="flex-1 flex flex-col">
-        <TabsList className="grid grid-cols-2 mx-4">
-          <TabsTrigger value="chat">
+      <Tabs defaultValue="chat" className="flex flex-col h-[520px]">
+        <TabsList className="grid grid-cols-2 mx-4 mb-2">
+          <TabsTrigger value="chat" className="flex items-center">
             <MessageSquare className="h-4 w-4 mr-2" />
             Chat
           </TabsTrigger>
-          <TabsTrigger value="topics">
+          <TabsTrigger value="topics" className="flex items-center">
             <HelpCircle className="h-4 w-4 mr-2" />
             Topics
           </TabsTrigger>
         </TabsList>
         
-        <TabsContent value="chat" className="flex-1 flex flex-col m-0 p-0">
+        <TabsContent value="chat" className="flex-1 flex flex-col m-0 p-0 h-full overflow-hidden">
           <ScrollArea className="flex-1 p-4">
             <div className="space-y-4">
               {messages.map((message) => (
@@ -251,13 +251,13 @@ const PropertyChatbot = () => {
                   }`}
                 >
                   <div
-                    className={`flex max-w-[80%] ${
+                    className={`flex max-w-[85%] ${
                       message.sender === 'user' ? 'flex-row-reverse' : ''
                     }`}
                   >
                     <Avatar className={`h-8 w-8 ${message.sender === 'user' ? 'ml-2' : 'mr-2'}`}>
                       {message.sender === 'user' ? (
-                        <AvatarImage src="https://github.com/shadcn.png" />
+                        <AvatarImage src="/placeholder.svg" />
                       ) : (
                         <AvatarImage src="/placeholder.svg" />
                       )}
@@ -272,7 +272,7 @@ const PropertyChatbot = () => {
                           : 'bg-muted'
                       }`}
                     >
-                      <p className="text-sm">{message.text}</p>
+                      <p className="text-sm whitespace-pre-wrap">{message.text}</p>
                       <span className="text-xs opacity-70 block mt-1">
                         {message.timestamp.toLocaleTimeString([], {
                           hour: '2-digit',
@@ -287,7 +287,7 @@ const PropertyChatbot = () => {
             </div>
           </ScrollArea>
           
-          <div className="p-4 border-t">
+          <div className="p-4 border-t dark:border-gray-700">
             <div className="flex gap-2">
               <Input
                 placeholder="Type your question..."
@@ -298,8 +298,9 @@ const PropertyChatbot = () => {
                     handleSendMessage();
                   }
                 }}
+                className="flex-1"
               />
-              <Button onClick={() => handleSendMessage()}>
+              <Button onClick={() => handleSendMessage()} size="icon">
                 <Send className="h-4 w-4" />
               </Button>
             </div>
@@ -340,7 +341,7 @@ const PropertyChatbot = () => {
           </div>
         </TabsContent>
         
-        <TabsContent value="topics" className="flex-1 m-0 p-0">
+        <TabsContent value="topics" className="flex-1 m-0 p-0 overflow-hidden">
           <ScrollArea className="h-full p-4">
             <div className="space-y-6">
               <div>
@@ -355,7 +356,7 @@ const PropertyChatbot = () => {
                       <Button
                         key={query.id}
                         variant="outline"
-                        className="justify-start h-auto py-2 px-3"
+                        className="justify-start h-auto py-2 px-3 text-left"
                         onClick={() => handleSuggestedQuery(query.text)}
                       >
                         {query.text}
@@ -376,7 +377,7 @@ const PropertyChatbot = () => {
                       <Button
                         key={query.id}
                         variant="outline"
-                        className="justify-start h-auto py-2 px-3"
+                        className="justify-start h-auto py-2 px-3 text-left"
                         onClick={() => handleSuggestedQuery(query.text)}
                       >
                         {query.text}
@@ -397,7 +398,7 @@ const PropertyChatbot = () => {
                       <Button
                         key={query.id}
                         variant="outline"
-                        className="justify-start h-auto py-2 px-3"
+                        className="justify-start h-auto py-2 px-3 text-left"
                         onClick={() => handleSuggestedQuery(query.text)}
                       >
                         {query.text}
@@ -418,7 +419,7 @@ const PropertyChatbot = () => {
                       <Button
                         key={query.id}
                         variant="outline"
-                        className="justify-start h-auto py-2 px-3"
+                        className="justify-start h-auto py-2 px-3 text-left"
                         onClick={() => handleSuggestedQuery(query.text)}
                       >
                         {query.text}
@@ -439,7 +440,7 @@ const PropertyChatbot = () => {
                       <Button
                         key={query.id}
                         variant="outline"
-                        className="justify-start h-auto py-2 px-3"
+                        className="justify-start h-auto py-2 px-3 text-left"
                         onClick={() => handleSuggestedQuery(query.text)}
                       >
                         {query.text}

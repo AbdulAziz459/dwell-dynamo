@@ -2,6 +2,7 @@
 import MainLayout from '@/components/layout/MainLayout';
 import PropertyChatbot from '@/components/messaging/PropertyChatbot';
 import { MessageSquareText, Bot, BrainCircuit, Building } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 
 const ChatPage = () => {
   return (
@@ -16,53 +17,63 @@ const ChatPage = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 flex items-start">
-              <MessageSquareText className="text-primary h-10 w-10 mr-3" />
-              <div>
-                <h3 className="font-medium">Instant Answers</h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Get immediate responses to your property questions without waiting
-                </p>
-              </div>
-            </div>
+            <Card className="bg-white dark:bg-gray-800 shadow-sm">
+              <CardContent className="p-4 flex items-start">
+                <MessageSquareText className="text-primary h-10 w-10 mr-3 flex-shrink-0" />
+                <div>
+                  <h3 className="font-medium">Instant Answers</h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Get immediate responses to your property questions without waiting
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
             
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 flex items-start">
-              <BrainCircuit className="text-primary h-10 w-10 mr-3" />
-              <div>
-                <h3 className="font-medium">Market Knowledge</h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Access up-to-date information about property rates and market trends
-                </p>
-              </div>
-            </div>
+            <Card className="bg-white dark:bg-gray-800 shadow-sm">
+              <CardContent className="p-4 flex items-start">
+                <BrainCircuit className="text-primary h-10 w-10 mr-3 flex-shrink-0" />
+                <div>
+                  <h3 className="font-medium">Market Knowledge</h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Access up-to-date information about property rates and market trends
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
             
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 flex items-start">
-              <Building className="text-primary h-10 w-10 mr-3" />
-              <div>
-                <h3 className="font-medium">Buying & Renting Advice</h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Learn about property processes, documentation, and best practices
-                </p>
-              </div>
-            </div>
+            <Card className="bg-white dark:bg-gray-800 shadow-sm">
+              <CardContent className="p-4 flex items-start">
+                <Building className="text-primary h-10 w-10 mr-3 flex-shrink-0" />
+                <div>
+                  <h3 className="font-medium">Buying & Renting Advice</h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Learn about property processes, documentation, and best practices
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
           </div>
           
-          <PropertyChatbot />
-          
-          <div className="mt-8 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-            <div className="flex items-start">
-              <Bot className="h-6 w-6 text-primary mr-3 mt-1" />
-              <div>
-                <h2 className="text-xl font-heading font-semibold">About the Property Assistant</h2>
-                <p className="text-muted-foreground mt-2">
-                  Our Property Assistant is designed to help you navigate the real estate market in Islamabad. 
-                  It can answer questions about buying, renting, and investing in properties, as well as provide
-                  information about current property rates in different areas. For more complex inquiries or 
-                  personalized assistance, please contact our agents directly.
-                </p>
-              </div>
-            </div>
+          <div className="mb-8">
+            <PropertyChatbot />
           </div>
+          
+          <Card className="bg-white dark:bg-gray-800 shadow-sm mb-8">
+            <CardContent className="p-6">
+              <div className="flex items-start">
+                <Bot className="h-6 w-6 text-primary mr-3 mt-1 flex-shrink-0" />
+                <div>
+                  <h2 className="text-xl font-heading font-semibold">About the Property Assistant</h2>
+                  <p className="text-muted-foreground mt-2">
+                    Our Property Assistant is designed to help you navigate the real estate market in Islamabad. 
+                    It can answer questions about buying, renting, and investing in properties, as well as provide
+                    information about current property rates in different areas. For more complex inquiries or 
+                    personalized assistance, please contact our agents directly.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </MainLayout>

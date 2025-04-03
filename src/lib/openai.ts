@@ -27,13 +27,19 @@ acknowledge it and provide general guidance instead.
 
 export const generateAIResponse = async (userMessage: string): Promise<string> => {
   try {
-    // In a real implementation, this should use an API key from environment variables
-    // For now, we'll use the existing chatbot responses while simulating an API call
+    // Check if API key is available
+    const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+    
+    if (!apiKey) {
+      console.warn('OpenAI API key not found, using fallback responses');
+      return generateLocalResponse(userMessage, chatbotResponses);
+    }
+    
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY || ''}`,
+        'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
         model: 'gpt-4o-mini',

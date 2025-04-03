@@ -1,17 +1,20 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { chatbotResponses } from '@/lib/data';
-import { Send, Bot, Home, User, HelpCircle, MessageSquare, Building, MapPin, BarChart, Loader2 } from 'lucide-react';
+import { Send, Bot, Home, User, HelpCircle, MessageSquare, Building, MapPin, BarChart, Loader2, Settings, BrainCircuit } from 'lucide-react';
 import { Message, SuggestedQuery } from '@/lib/types';
 import { generateAIResponse } from '@/lib/openai';
 import { AssistantLogo } from '@/components/ui/assistant-logo';
 import { toast } from '@/hooks/use-toast';
 import { generateLocalResponse } from '@/lib/localChatbot';
+import { Switch } from '@/components/ui/switch';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 const suggestedQueries: SuggestedQuery[] = [
   // Buying category
@@ -66,6 +69,7 @@ const PropertyChatbot = () => {
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [useAI, setUseAI] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
@@ -92,13 +96,20 @@ const PropertyChatbot = () => {
     setIsLoading(true);
     
     try {
-      // Get response from OpenAI API
-      const response = await generateAIResponse(text);
+      let botResponse: string;
+      
+      if (useAI) {
+        // Get response from OpenAI API
+        botResponse = await generateAIResponse(text);
+      } else {
+        // Use local response generation
+        botResponse = generateLocalResponse(text, chatbotResponses);
+      }
       
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
         sender: 'bot',
-        text: response,
+        text: botResponse,
         timestamp: new Date(),
       };
       
@@ -135,9 +146,52 @@ const PropertyChatbot = () => {
   return (
     <Card className="shadow-md border-gray-800 bg-gray-900 text-white">
       <CardHeader className="pb-2 pt-4 px-4 border-b border-gray-800">
-        <CardTitle className="flex items-center text-lg text-white">
-          <AssistantLogo size={20} className="mr-2" />
-          Property Assistant
+        <CardTitle className="flex items-center text-lg text-white justify-between">
+          <div className="flex items-center">
+            <AssistantLogo size={20} className="mr-2" />
+            Property Assistant
+          </div>
+          <div className="flex items-center space-x-2">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-white hover:bg-gray-800">
+                  <Settings size={16} />
+                </Button>
+              </SheetTrigger>
+              <SheetContent className="bg-gray-900 text-white border-gray-800">
+                <SheetHeader>
+                  <SheetTitle className="text-white">Assistant Settings</SheetTitle>
+                </SheetHeader>
+                <div className="space-y-4 mt-6">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <div className="flex items-center">
+                        <BrainCircuit className="mr-2 h-4 w-4 text-teal-400" />
+                        <span className="font-medium">Use AI</span>
+                      </div>
+                      <p className="text-sm text-gray-400">
+                        Toggle between AI and local responses
+                      </p>
+                    </div>
+                    <Switch
+                      checked={useAI}
+                      onCheckedChange={setUseAI}
+                      className="data-[state=checked]:bg-teal-600"
+                    />
+                  </div>
+                  
+                  <div className="rounded-lg bg-gray-800 p-4 text-sm">
+                    <p className="text-gray-300">
+                      {useAI 
+                        ? "The assistant is using OpenAI to generate responses. This provides more accurate and contextual answers but requires an API key."
+                        : "The assistant is using local responses. These are pre-defined answers that may be less specific but don't require an API connection."
+                      }
+                    </p>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
         </CardTitle>
       </CardHeader>
       
@@ -179,14 +233,14 @@ const PropertyChatbot = () => {
                       </AvatarFallback>
                     </Avatar>
                     <div
-                      className={`rounded-lg p-3 ${
+                      className={`rounded-lg p-3 relative ${
                         message.sender === 'user'
                           ? 'bg-teal-600 text-white'
                           : 'bg-gray-800 text-white'
                       }`}
                     >
                       {message.sender === 'bot' && (
-                        <div className="absolute -left-3 -top-3">
+                        <div className="absolute -left-2 -top-2">
                           <AssistantLogo size={16} />
                         </div>
                       )}
@@ -210,10 +264,13 @@ const PropertyChatbot = () => {
                         <Bot size={14} />
                       </AvatarFallback>
                     </Avatar>
-                    <div className="rounded-lg p-3 bg-gray-800 text-white">
+                    <div className="rounded-lg p-3 bg-gray-800 text-white relative">
+                      <div className="absolute -left-2 -top-2">
+                        <AssistantLogo size={16} />
+                      </div>
                       <div className="flex items-center space-x-2">
                         <Loader2 className="h-4 w-4 animate-spin" />
-                        <p className="text-sm">Thinking...</p>
+                        <p className="text-sm">{useAI ? "AI thinking..." : "Thinking..."}</p>
                       </div>
                     </div>
                   </div>
@@ -237,20 +294,37 @@ const PropertyChatbot = () => {
                 className="flex-1 bg-gray-800 border-gray-700 text-white placeholder:text-gray-400"
                 disabled={isLoading}
               />
-              <Button 
-                onClick={() => handleSendMessage()} 
-                size="icon" 
-                className="bg-teal-600 hover:bg-teal-700"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Send className="h-4 w-4" />
-                )}
-              </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      onClick={() => handleSendMessage()} 
+                      size="icon" 
+                      className="bg-teal-600 hover:bg-teal-700"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Send className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Send Message</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
-            <div className="flex flex-wrap gap-2 mt-3">
+            
+            <div className="flex items-center space-x-2 mt-2">
+              <BrainCircuit size={14} className={useAI ? "text-teal-400" : "text-gray-500"} />
+              <span className="text-xs text-gray-400">
+                {useAI ? "AI-powered responses" : "Local responses"}
+              </span>
+            </div>
+            
+            <div className="flex flex-wrap gap-2 mt-2">
               <Button
                 variant="outline"
                 size="sm"
@@ -407,6 +481,14 @@ const PropertyChatbot = () => {
           </ScrollArea>
         </TabsContent>
       </Tabs>
+      
+      <CardFooter className="px-4 py-2 border-t border-gray-800 bg-gray-900 flex justify-between text-xs text-gray-400">
+        <span>Powered by {useAI ? "OpenAI" : "Local Data"}</span>
+        <div className="flex items-center">
+          <AssistantLogo size={12} className="mr-1" />
+          <span>Property Expert v1.0</span>
+        </div>
+      </CardFooter>
     </Card>
   );
 };

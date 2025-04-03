@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { 
@@ -48,9 +47,7 @@ const PropertyDetailPage = () => {
       if (propertyData) {
         const recommended = user 
           ? getRecommendedProperties(user.id)
-          : getPropertyById 
-            ? getPropertiesByType(propertyData.type, propertyData.status).filter(p => p.id !== id).slice(0, 3)
-            : [];
+          : getPropertiesByType(propertyData.type, propertyData.status).filter(p => p.id !== id).slice(0, 3);
         setSimilarProperties(recommended);
       }
     }

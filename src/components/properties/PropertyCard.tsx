@@ -26,7 +26,7 @@ const PropertyCard = ({ property, isFavorite = false, onToggleFavorite }: Proper
   };
 
   return (
-    <Link to={`/property/${property.id}`}>
+    <Link to={`/properties/${property.id}`}>
       <Card 
         className="property-card overflow-hidden h-full cursor-pointer"
         onMouseEnter={() => setIsHovered(true)}
@@ -95,7 +95,7 @@ const PropertyCard = ({ property, isFavorite = false, onToggleFavorite }: Proper
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              window.location.href = `/property/${property.id}#contact`;
+              window.location.href = `/properties/${property.id}#contact`;
             }}
           >
             <MessageSquare size={14} className="mr-1" />

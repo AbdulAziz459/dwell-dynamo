@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { 
   Building, 
@@ -19,16 +19,30 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { formatDate } from '@/lib/utils';
 import MyProperties from '@/components/dashboard/MyProperties';
+import { getPropertyById, Property } from '@/lib/data';
+import PropertyCard from '@/components/properties/PropertyCard';
 
 const DashboardPage = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, isPropertyFavorite, removeFromFavorites } = useAuth();
   const navigate = useNavigate();
+  const [favoriteProperties, setFavoriteProperties] = useState<Property[]>([]);
   
   useEffect(() => {
     if (!user) {
       navigate('/login', { state: { returnUrl: '/dashboard' } });
+    } else {
+      // Load favorite properties
+      const favorites = user.favorites
+        .map(id => getPropertyById(id))
+        .filter(property => property !== undefined) as Property[];
+      setFavoriteProperties(favorites);
     }
   }, [user, navigate]);
+  
+  const handleToggleFavorite = (propertyId: string) => {
+    removeFromFavorites(propertyId);
+    setFavoriteProperties(prev => prev.filter(p => p.id !== propertyId));
+  };
   
   if (!user) {
     return (
@@ -136,7 +150,7 @@ const DashboardPage = () => {
               <div>
                 <h2 className="text-2xl font-heading font-semibold mb-6">Saved Properties</h2>
                 
-                {user.favorites.length === 0 ? (
+                {favoriteProperties.length === 0 ? (
                   <div className="text-center py-12 px-4">
                     <Heart className="h-12 w-12 mx-auto text-muted-foreground" />
                     <h3 className="mt-4 text-lg font-medium">No Saved Properties</h3>
@@ -152,7 +166,14 @@ const DashboardPage = () => {
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {/* Favorite Properties would be mapped here */}
+                    {favoriteProperties.map(property => (
+                      <PropertyCard 
+                        key={property.id} 
+                        property={property} 
+                        isFavorite={isPropertyFavorite(property.id)}
+                        onToggleFavorite={handleToggleFavorite}
+                      />
+                    ))}
                   </div>
                 )}
               </div>

@@ -1,4 +1,3 @@
-
 import { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { authenticateUser, users } from '@/lib/data';
@@ -21,6 +20,7 @@ export interface AuthUser {
 interface AuthContextType {
   user: AuthUser | null;
   isLoading: boolean;
+  isLoggedIn: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   register: (name: string, email: string, password: string) => Promise<boolean>;
@@ -53,6 +53,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
     setIsLoading(false);
   }, []);
+
+  // Compute isLoggedIn from user state
+  const isLoggedIn = user !== null;
 
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
@@ -316,7 +319,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     <AuthContext.Provider 
       value={{ 
         user, 
-        isLoading, 
+        isLoading,
+        isLoggedIn,
         login, 
         logout, 
         register,

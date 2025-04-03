@@ -3,6 +3,7 @@ import MainLayout from '@/components/layout/MainLayout';
 import PropertyChatbot from '@/components/messaging/PropertyChatbot';
 import { MessageSquareText, Bot, BrainCircuit, Building } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { AssistantLogo } from '@/components/ui/assistant-logo';
 
 const ChatPage = () => {
   return (
@@ -11,11 +12,11 @@ const ChatPage = () => {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
             <h1 className="text-3xl font-heading font-bold text-white flex items-center gap-2">
-              <Bot className="h-8 w-8 text-teal-400" />
-              Property Assistant
+              <AssistantLogo size={32} className="mr-2" />
+              AI Property Assistant
             </h1>
             <p className="text-gray-400 mt-2">
-              Get quick answers to your property queries from our intelligent chatbot
+              Get expert answers to your property queries from our AI-powered chatbot
             </p>
           </div>
           
@@ -26,14 +27,15 @@ const ChatPage = () => {
           <Card className="bg-gray-900 border-gray-800 shadow-md mt-8">
             <CardContent className="p-6">
               <div className="flex items-start">
-                <Bot className="h-6 w-6 text-teal-400 mr-3 mt-1 flex-shrink-0" />
+                <AssistantLogo size={24} className="mr-3 mt-1 flex-shrink-0" />
                 <div>
-                  <h2 className="text-xl font-heading font-semibold text-white">About the Property Assistant</h2>
+                  <h2 className="text-xl font-heading font-semibold text-white">About the AI Property Assistant</h2>
                   <p className="text-gray-400 mt-2">
-                    Our Property Assistant is designed to help you navigate the real estate market in Islamabad. 
+                    Our AI-powered Property Assistant uses advanced language models to help you navigate the real estate market in Islamabad. 
                     It can answer questions about buying, renting, and investing in properties, as well as provide
-                    information about current property rates in different areas. For more complex inquiries or 
-                    personalized assistance, please contact our agents directly.
+                    information about current property rates in different areas. Ask any property-related question and get accurate, 
+                    up-to-date information instantly. For more complex inquiries or personalized assistance, 
+                    please contact our agents directly.
                   </p>
                 </div>
               </div>

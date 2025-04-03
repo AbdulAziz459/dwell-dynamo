@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,16 +7,13 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { chatbotResponses } from '@/lib/data';
-import { Send, Bot, Home, User, HelpCircle, MessageSquare, Building, MapPin, BarChart } from 'lucide-react';
+import { Send, Bot, Home, User, HelpCircle, MessageSquare, Building, MapPin, BarChart, Loader2 } from 'lucide-react';
+import { Message, SuggestedQuery } from '@/lib/types';
+import { generateAIResponse } from '@/lib/openai';
+import { AssistantLogo } from '@/components/ui/assistant-logo';
+import { toast } from '@/hooks/use-toast';
 
-interface Message {
-  id: string;
-  sender: 'user' | 'bot';
-  text: string;
-  timestamp: Date;
-}
-
-const suggestedQueries = [
+const suggestedQueries: SuggestedQuery[] = [
   // Buying category
   { id: 'buying-process', text: 'How to buy property in Islamabad?', category: 'buying' },
   { id: 'buying-tips', text: 'What should I check before buying?', category: 'buying' },
@@ -62,11 +60,12 @@ const PropertyChatbot = () => {
     {
       id: '1',
       sender: 'bot',
-      text: 'Hello! I\'m your property assistant. How can I help you today? You can ask me about buying, renting, investment advice, or property rates in Islamabad.',
+      text: 'Hello! I\'m your property assistant powered by AI. How can I help you today? You can ask me about buying, renting, investment advice, or property rates in Islamabad.',
       timestamp: new Date(),
     }
   ]);
   const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
@@ -77,7 +76,7 @@ const PropertyChatbot = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
   
-  const handleSendMessage = (text: string = input) => {
+  const handleSendMessage = async (text: string = input) => {
     if (!text.trim()) return;
     
     // Add user message
@@ -90,10 +89,12 @@ const PropertyChatbot = () => {
     
     setMessages(prev => [...prev, userMessage]);
     setInput('');
+    setIsLoading(true);
     
-    // Process query and get bot response
-    setTimeout(() => {
-      const response = generateResponse(text);
+    try {
+      // Get response from OpenAI API
+      const response = await generateAIResponse(text);
+      
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
         sender: 'bot',
@@ -102,115 +103,29 @@ const PropertyChatbot = () => {
       };
       
       setMessages(prev => [...prev, botMessage]);
-    }, 500);
-  };
-  
-  const generateResponse = (query: string): string => {
-    // Convert query to lowercase for easier matching
-    const lowercaseQuery = query.toLowerCase();
-    
-    // Check for property buying related queries
-    if (lowercaseQuery.includes('buy') || lowercaseQuery.includes('buying') || lowercaseQuery.includes('purchase')) {
-      if (lowercaseQuery.includes('process') || lowercaseQuery.includes('how to')) {
-        return chatbotResponses.buying.process;
-      } else if (lowercaseQuery.includes('tips') || lowercaseQuery.includes('check') || lowercaseQuery.includes('verify')) {
-        return chatbotResponses.buying.tips;
-      } else if (lowercaseQuery.includes('finance') || lowercaseQuery.includes('loan') || lowercaseQuery.includes('mortgage')) {
-        return chatbotResponses.buying.finance;
-      } else if (lowercaseQuery.includes('document') || lowercaseQuery.includes('paper')) {
-        return "To buy property in Pakistan, you'll need: 1) CNIC/NICOP, 2) Passport-sized photographs, 3) Copy of seller's title deed, 4) Non-Encumbrance Certificate, 5) Property tax receipts, 6) Token money receipt, 7) Sale deed/agreement. For overseas Pakistanis, a power of attorney might be needed.";
-      } else if (lowercaseQuery.includes('inspect') || lowercaseQuery.includes('examination')) {
-        return "When inspecting property: 1) Check for structural issues (cracks, dampness), 2) Verify all utilities are working, 3) Examine electrical wiring and plumbing, 4) Check water pressure and drainage, 5) Look for any encroachments, 6) Visit at different times of day, 7) Check the neighborhood and nearby facilities, 8) Always bring a professional inspector if possible.";
-      } else if (lowercaseQuery.includes('negotiat') || lowercaseQuery.includes('bargain') || lowercaseQuery.includes('price')) {
-        return "For successful property price negotiation: 1) Research market rates thoroughly, 2) Point out property flaws that warrant a discount, 3) Be prepared to walk away, 4) Start with a reasonable offer (usually 10-15% below asking), 5) Get pre-approved financing to show seriousness, 6) Consider requesting additional inclusions rather than just price reduction, 7) Negotiate closing costs separately.";
-      }
-    }
-    
-    // Check for property renting related queries
-    if (lowercaseQuery.includes('rent') || lowercaseQuery.includes('renting') || lowercaseQuery.includes('lease')) {
-      if (lowercaseQuery.includes('process') || lowercaseQuery.includes('how to')) {
-        return chatbotResponses.renting.process;
-      } else if (lowercaseQuery.includes('tips') || lowercaseQuery.includes('advice')) {
-        return chatbotResponses.renting.tips;
-      } else if (lowercaseQuery.includes('document') || lowercaseQuery.includes('paper')) {
-        return chatbotResponses.renting.documents;
-      } else if (lowercaseQuery.includes('inspect') || lowercaseQuery.includes('check')) {
-        return "Before renting, check: 1) Water supply and pressure, 2) Electricity connections and load capacity, 3) Gas connections, 4) Working condition of fans, ACs, and other fixtures, 5) Security of the area, 6) Parking space, 7) Access to main roads and markets, 8) Neighborhood environment, 9) Previous utility bills to estimate costs, 10) Any signs of leakage, dampness or pests.";
-      } else if (lowercaseQuery.includes('agreement') || lowercaseQuery.includes('contract')) {
-        return "A good rental agreement should include: 1) Names and CNIC numbers of all parties, 2) Complete property address, 3) Rental amount and payment terms, 4) Security deposit amount and terms, 5) Duration of tenancy, 6) Notice period for termination, 7) Maintenance responsibilities, 8) Utility payment responsibilities, 9) Restrictions on property use, 10) Conditions for returning the security deposit. Have it notarized for legal validity.";
-      } else if (lowercaseQuery.includes('deposit') || lowercaseQuery.includes('security')) {
-        return "Standard security deposits in Pakistan are typically 2-3 months' rent. For luxury properties, it may go up to 6 months. The deposit is refundable at the end of the tenancy period, subject to deductions for damages beyond normal wear and tear. Always get a receipt for your security deposit payment.";
-      }
-    }
-    
-    // Check for investment related queries
-    if (lowercaseQuery.includes('invest') || lowercaseQuery.includes('return') || lowercaseQuery.includes('profit')) {
-      if (lowercaseQuery.includes('advice') || lowercaseQuery.includes('should')) {
-        return chatbotResponses.investment.advice;
-      } else if (lowercaseQuery.includes('return') || lowercaseQuery.includes('profit') || lowercaseQuery.includes('yield')) {
-        return chatbotResponses.investment.returns;
-      } else if (lowercaseQuery.includes('hotspot') || lowercaseQuery.includes('area') || lowercaseQuery.includes('location')) {
-        return chatbotResponses.investment.hotspots;
-      } else if (lowercaseQuery.includes('commercial') || lowercaseQuery.includes('residential')) {
-        return "Commercial vs Residential Investment: Commercial properties typically offer higher rental yields (6-10% annually vs 3-5% for residential), but require higher initial investment. Residential properties are easier to manage and have lower vacancy rates. Commercial leases are usually longer-term and tenants often handle maintenance, but finding commercial tenants can be more difficult. In Islamabad, commercial plots in Blue Area, F-7 Markaz and I-8 Markaz are seeing good appreciation.";
-      } else if (lowercaseQuery.includes('risk') || lowercaseQuery.includes('danger')) {
-        return "Real estate investment risks in Pakistan include: 1) Regulatory changes affecting property values, 2) Market volatility, especially in developing areas, 3) Title disputes and fraud, 4) Liquidity challenges when quick selling is needed, 5) Construction quality issues in new developments, 6) Legal complications with tenants, 7) Unexpected taxes or fee increases, 8) Delays in possession of property from developers. Always verify legal status through proper due diligence.";
-      } else if (lowercaseQuery.includes('appreciation') || lowercaseQuery.includes('value increase')) {
-        return "Areas with highest appreciation rates in Islamabad include: 1) New sectors like E-11, D-12, and B-17, 2) Bahria Town (especially Phase 8 and Bahria Enclave), 3) DHA Phases II and V, 4) Gulberg Residencia, 5) Capital Smart City. Properties near the new Islamabad International Airport have seen 25-30% appreciation in the last two years. Areas with planned infrastructure developments like the Margalla Avenue also show strong appreciation potential.";
-      }
-    }
-    
-    // Check for rate related queries
-    if (lowercaseQuery.includes('rate') || lowercaseQuery.includes('price') || lowercaseQuery.includes('cost')) {
-      if (lowercaseQuery.includes('f-') || lowercaseQuery.includes('f sector')) {
-        return chatbotResponses.rates["F-Sectors"];
-      } else if (lowercaseQuery.includes('e-') || lowercaseQuery.includes('e sector')) {
-        return chatbotResponses.rates["E-Sectors"];
-      } else if (lowercaseQuery.includes('bahria')) {
-        return chatbotResponses.rates["Bahria Town"];
-      } else if (lowercaseQuery.includes('dha')) {
-        return chatbotResponses.rates["DHA"];
-      } else if (lowercaseQuery.includes('gulberg')) {
-        return "In Gulberg, Islamabad: 5 marla plots range from PKR 50-70 lakh, 10 marla plots from PKR 1-1.4 crore, 1 kanal plots from PKR 1.8-2.5 crore. Residential apartments range from PKR 70 lakh to 1.8 crore depending on size and amenities. Commercial properties in Gulberg Greens start from PKR 1.5 crore for small shops to PKR 5 crore+ for larger commercial spaces.";
-      } else if (lowercaseQuery.includes('bani gala')) {
-        return "In Bani Gala, Islamabad: Property rates vary widely based on location, view, and road access. 1 kanal plots range from PKR 1.5-3 crore (higher for those with Rawal Lake or Margalla Hills views). Luxury farmhouses (4+ kanals) range from PKR 8-20 crore. The area remains popular due to its natural beauty and proximity to key government buildings, despite fluctuations in the market.";
-      } else if (lowercaseQuery.includes('g-') || lowercaseQuery.includes('g sector')) {
-        return "In G Sectors of Islamabad: G-6, G-7, and G-8 are well-established with 1 kanal houses ranging from PKR 3-5 crore. In G-9, G-10, and G-11, 1 kanal plots range from PKR 1.8-2.8 crore. G-13 and G-14 are more affordable with 10 marla plots from PKR 1-1.4 crore. Apartments in G-11 range from PKR 80 lakh to 1.5 crore. Commercial properties in G-9 Markaz range from PKR 3-7 crore depending on size and location.";
-      } else if (lowercaseQuery.includes('i-') || lowercaseQuery.includes('i sector')) {
-        return "In I Sectors of Islamabad: I-8 is among the most developed with 1 kanal plots ranging from PKR 2.2-3 crore. I-9 industrial area commercial plots range from PKR 2.5-4 crore. I-10 and I-11 residential plots (10 marla) range from PKR 90 lakh to 1.2 crore. I-14 and I-16 are developing sectors with more affordable rates, 10 marla plots ranging from PKR 70-90 lakh. Commercial plots in I-8 Markaz range from PKR 3-6 crore.";
-      }
-    }
-    
-    // Check for market trends
-    if (lowercaseQuery.includes('trend') || lowercaseQuery.includes('market') || lowercaseQuery.includes('forecast')) {
-      if (lowercaseQuery.includes('current') || lowercaseQuery.includes('now')) {
-        return "Current real estate trends in Islamabad show moderate growth with 8-12% annual appreciation in developed sectors. There's increasing demand for apartments due to rising house prices. Government initiatives like Naya Pakistan Housing are impacting the affordable housing segment. Online property portals are becoming more significant in transactions. The luxury market remains stable with consistent demand in areas like DHA and Bahria Town.";
-      } else if (lowercaseQuery.includes('forecast') || lowercaseQuery.includes('future') || lowercaseQuery.includes('predict')) {
-        return "The Islamabad real estate forecast for the next 1-2 years indicates continued growth in new housing schemes around the motorway and airport. Economic challenges may slow luxury market growth, but mid-range properties should remain stable. Government housing initiatives and potential mortgage market expansion could boost affordable housing. Areas expected to see highest growth include Capital Smart City, Park View City, and sectors near the new airport.";
-      } else if (lowercaseQuery.includes('best time') || lowercaseQuery.includes('when')) {
-        return "The best time to invest in Pakistani real estate is typically during economic stabilization periods. Currently, prices are relatively stable after recent adjustments. For timing: 1) Watch for infrastructure announcements, which typically precede price increases, 2) Consider investing during winter months when market activity slows, 3) Look for political stability periods rather than election years, 4) Monitor interest rates, as lower rates typically boost the property market.";
-      } else if (lowercaseQuery.includes('up') || lowercaseQuery.includes('coming') || lowercaseQuery.includes('emerging')) {
-        return "Up-and-coming areas in Islamabad with growth potential include: 1) B-17 Multi Gardens, 2) I-14 and I-15 sectors, 3) Mouza Phulgran near Murree Expressway, 4) Top City-1 near the new airport, 5) Pakistan Town Phase 2, 6) Eighteen Islamabad, 7) Nova City, 8) Kingdom Valley. These areas offer more affordable entry points with significant appreciation potential due to planned infrastructure developments and improved accessibility.";
-      }
-    }
-    
-    // Find a suggested query that matches
-    const matchedQuery = suggestedQueries.find(
-      q => lowercaseQuery.includes(q.text.toLowerCase()) || 
-           q.id.toLowerCase().includes(lowercaseQuery.replace(/[^a-z0-9]/g, '-'))
-    );
-    
-    if (matchedQuery) {
-      const category = matchedQuery.category as keyof typeof chatbotResponses;
-      const subCategory = matchedQuery.id.split('-')[1] as keyof (typeof chatbotResponses)[typeof category];
+    } catch (error) {
+      console.error('Error getting bot response:', error);
+      toast({
+        title: "Connection Error",
+        description: "Could not generate a response. Using local data instead.",
+        variant: "destructive",
+      });
       
-      if (chatbotResponses[category] && chatbotResponses[category][subCategory]) {
-        return chatbotResponses[category][subCategory];
-      }
+      // Fallback to local response system
+      import { generateLocalResponse } from '@/lib/localChatbot';
+      const fallbackResponse = generateLocalResponse(text, chatbotResponses);
+      
+      const botMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        sender: 'bot',
+        text: fallbackResponse,
+        timestamp: new Date(),
+      };
+      
+      setMessages(prev => [...prev, botMessage]);
+    } finally {
+      setIsLoading(false);
     }
-    
-    // Default response
-    return "I'm not sure about that. Could you try asking about buying, renting, investment advice, or property rates in Islamabad? You can also ask about current market trends or specific areas.";
   };
   
   const handleSuggestedQuery = (query: string) => {
@@ -222,7 +137,7 @@ const PropertyChatbot = () => {
     <Card className="shadow-md border-gray-800 bg-gray-900 text-white">
       <CardHeader className="pb-2 pt-4 px-4 border-b border-gray-800">
         <CardTitle className="flex items-center text-lg text-white">
-          <Bot className="h-5 w-5 mr-2 text-teal-400" />
+          <AssistantLogo size={20} className="mr-2" />
           Property Assistant
         </CardTitle>
       </CardHeader>
@@ -258,7 +173,7 @@ const PropertyChatbot = () => {
                       {message.sender === 'user' ? (
                         <AvatarImage src="/placeholder.svg" />
                       ) : (
-                        <AvatarImage src="/placeholder.svg" />
+                        <AssistantLogo size={32} />
                       )}
                       <AvatarFallback className={message.sender === 'user' ? 'bg-teal-700' : 'bg-gray-700'}>
                         {message.sender === 'user' ? <User size={14} /> : <Bot size={14} />}
@@ -271,6 +186,11 @@ const PropertyChatbot = () => {
                           : 'bg-gray-800 text-white'
                       }`}
                     >
+                      {message.sender === 'bot' && (
+                        <div className="absolute -left-3 -top-3">
+                          <AssistantLogo size={16} />
+                        </div>
+                      )}
                       <p className="text-sm whitespace-pre-wrap">{message.text}</p>
                       <span className="text-xs opacity-70 block mt-1">
                         {message.timestamp.toLocaleTimeString([], {
@@ -282,6 +202,24 @@ const PropertyChatbot = () => {
                   </div>
                 </div>
               ))}
+              {isLoading && (
+                <div className="flex justify-start">
+                  <div className="flex max-w-[85%]">
+                    <Avatar className="h-8 w-8 mr-2 bg-gray-800">
+                      <AssistantLogo size={32} />
+                      <AvatarFallback className="bg-gray-700">
+                        <Bot size={14} />
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="rounded-lg p-3 bg-gray-800 text-white">
+                      <div className="flex items-center space-x-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <p className="text-sm">Thinking...</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
               <div ref={messagesEndRef} />
             </div>
           </ScrollArea>
@@ -298,9 +236,19 @@ const PropertyChatbot = () => {
                   }
                 }}
                 className="flex-1 bg-gray-800 border-gray-700 text-white placeholder:text-gray-400"
+                disabled={isLoading}
               />
-              <Button onClick={() => handleSendMessage()} size="icon" className="bg-teal-600 hover:bg-teal-700">
-                <Send className="h-4 w-4" />
+              <Button 
+                onClick={() => handleSendMessage()} 
+                size="icon" 
+                className="bg-teal-600 hover:bg-teal-700"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
               </Button>
             </div>
             <div className="flex flex-wrap gap-2 mt-3">
@@ -309,6 +257,7 @@ const PropertyChatbot = () => {
                 size="sm"
                 className="text-xs border-gray-700 bg-gray-800 hover:bg-gray-700 text-white"
                 onClick={() => handleSuggestedQuery("How to buy property in Islamabad?")}
+                disabled={isLoading}
               >
                 Buying Process
               </Button>
@@ -317,6 +266,7 @@ const PropertyChatbot = () => {
                 size="sm"
                 className="text-xs border-gray-700 bg-gray-800 hover:bg-gray-700 text-white"
                 onClick={() => handleSuggestedQuery("Best property investment areas?")}
+                disabled={isLoading}
               >
                 Investment Areas
               </Button>
@@ -325,6 +275,7 @@ const PropertyChatbot = () => {
                 size="sm"
                 className="text-xs border-gray-700 bg-gray-800 hover:bg-gray-700 text-white"
                 onClick={() => handleSuggestedQuery("Property rates in F sectors?")}
+                disabled={isLoading}
               >
                 F-Sector Rates
               </Button>
@@ -333,6 +284,7 @@ const PropertyChatbot = () => {
                 size="sm"
                 className="text-xs border-gray-700 bg-gray-800 hover:bg-gray-700 text-white"
                 onClick={() => handleSuggestedQuery("Current real estate market trends?")}
+                disabled={isLoading}
               >
                 Market Trends
               </Button>
@@ -357,6 +309,7 @@ const PropertyChatbot = () => {
                         variant="outline"
                         className="justify-start h-auto py-2 px-3 text-left border-gray-700 bg-gray-800 hover:bg-gray-700 text-white"
                         onClick={() => handleSuggestedQuery(query.text)}
+                        disabled={isLoading}
                       >
                         {query.text}
                       </Button>
@@ -378,6 +331,7 @@ const PropertyChatbot = () => {
                         variant="outline"
                         className="justify-start h-auto py-2 px-3 text-left border-gray-700 bg-gray-800 hover:bg-gray-700 text-white"
                         onClick={() => handleSuggestedQuery(query.text)}
+                        disabled={isLoading}
                       >
                         {query.text}
                       </Button>
@@ -399,6 +353,7 @@ const PropertyChatbot = () => {
                         variant="outline"
                         className="justify-start h-auto py-2 px-3 text-left border-gray-700 bg-gray-800 hover:bg-gray-700 text-white"
                         onClick={() => handleSuggestedQuery(query.text)}
+                        disabled={isLoading}
                       >
                         {query.text}
                       </Button>
@@ -420,6 +375,7 @@ const PropertyChatbot = () => {
                         variant="outline"
                         className="justify-start h-auto py-2 px-3 text-left border-gray-700 bg-gray-800 hover:bg-gray-700 text-white"
                         onClick={() => handleSuggestedQuery(query.text)}
+                        disabled={isLoading}
                       >
                         {query.text}
                       </Button>
@@ -441,6 +397,7 @@ const PropertyChatbot = () => {
                         variant="outline"
                         className="justify-start h-auto py-2 px-3 text-left border-gray-700 bg-gray-800 hover:bg-gray-700 text-white"
                         onClick={() => handleSuggestedQuery(query.text)}
+                        disabled={isLoading}
                       >
                         {query.text}
                       </Button>

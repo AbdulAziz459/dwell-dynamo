@@ -1,4 +1,7 @@
 
+import { chatbotResponses } from './data';
+import { generateLocalResponse } from './localChatbot';
+
 interface OpenAIResponse {
   choices: {
     message: {
@@ -55,9 +58,6 @@ export const generateAIResponse = async (userMessage: string): Promise<string> =
     console.error('Error generating AI response:', error);
     
     // Fallback to local response generation when API fails
-    import { chatbotResponses } from './data';
-    import { generateLocalResponse } from './localChatbot';
-    
     return generateLocalResponse(userMessage, chatbotResponses);
   }
 };

@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +11,7 @@ import { Message, SuggestedQuery } from '@/lib/types';
 import { generateAIResponse } from '@/lib/openai';
 import { AssistantLogo } from '@/components/ui/assistant-logo';
 import { toast } from '@/hooks/use-toast';
+import { generateLocalResponse } from '@/lib/localChatbot';
 
 const suggestedQueries: SuggestedQuery[] = [
   // Buying category
@@ -112,7 +112,6 @@ const PropertyChatbot = () => {
       });
       
       // Fallback to local response system
-      import { generateLocalResponse } from '@/lib/localChatbot';
       const fallbackResponse = generateLocalResponse(text, chatbotResponses);
       
       const botMessage: Message = {

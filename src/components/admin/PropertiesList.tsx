@@ -7,9 +7,10 @@ interface PropertiesListProps {
   properties: Property[];
   onEdit: (propertyId: string) => void;
   onRemove: (propertyId: string) => void;
+  onUpdateStatus: (propertyId: string, status: 'active' | 'pending' | 'inactive') => void;
 }
 
-const PropertiesList = ({ properties, onEdit, onRemove }: PropertiesListProps) => {
+const PropertiesList = ({ properties, onEdit, onRemove, onUpdateStatus }: PropertiesListProps) => {
   if (properties.length === 0) {
     return null;
   }
@@ -37,8 +38,10 @@ const PropertiesList = ({ properties, onEdit, onRemove }: PropertiesListProps) =
           <div>${property.price.toLocaleString()}</div>
           <PropertyActions 
             propertyId={property.id} 
+            currentStatus={property.status}
             onEdit={onEdit} 
             onRemove={onRemove}
+            onUpdateStatus={onUpdateStatus}
           />
         </div>
       ))}

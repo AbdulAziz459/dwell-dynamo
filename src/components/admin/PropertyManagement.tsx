@@ -12,6 +12,7 @@ interface PropertyManagementProps {
   onAddProperty: () => void;
   onEditProperty: (propertyId: string) => void;
   onRemoveProperty: (propertyId: string) => void;
+  onUpdateStatus: (propertyId: string, status: 'active' | 'pending' | 'inactive') => void;
 }
 
 const PropertyManagement = ({ 
@@ -19,7 +20,8 @@ const PropertyManagement = ({
   isLoading, 
   onAddProperty, 
   onEditProperty, 
-  onRemoveProperty 
+  onRemoveProperty,
+  onUpdateStatus
 }: PropertyManagementProps) => {
   
   if (isLoading) {
@@ -27,7 +29,7 @@ const PropertyManagement = ({
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
           <Clock className="h-12 w-12 mx-auto mb-4 text-primary animate-pulse" />
-          <p className="text-muted-foreground">Loading admin dashboard...</p>
+          <p className="text-muted-foreground">Loading property listings...</p>
         </div>
       </div>
     );
@@ -39,7 +41,7 @@ const PropertyManagement = ({
         <div>
           <CardTitle>Property Management</CardTitle>
           <CardDescription>
-            Manage all property listings in the system
+            Manage all user property listings
           </CardDescription>
         </div>
         <Button onClick={onAddProperty} className="flex items-center gap-2">
@@ -55,6 +57,7 @@ const PropertyManagement = ({
             properties={properties} 
             onEdit={onEditProperty}
             onRemove={onRemoveProperty}
+            onUpdateStatus={onUpdateStatus}
           />
         )}
       </CardContent>

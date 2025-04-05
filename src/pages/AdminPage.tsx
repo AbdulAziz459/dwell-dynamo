@@ -11,6 +11,37 @@ import AdminHeader from '@/components/admin/AdminHeader';
 import AdminStats from '@/components/admin/AdminStats';
 import PropertyManagement from '@/components/admin/PropertyManagement';
 
+// Mock data for demonstration
+const mockProperties: Property[] = [
+  {
+    id: 'prop1',
+    title: 'Modern Apartment in Downtown',
+    type: 'apartment',
+    status: 'active',
+    price: 250000,
+    location: 'Downtown, New York',
+    createdAt: '2025-03-15T10:30:00Z',
+  },
+  {
+    id: 'prop2',
+    title: 'Cozy Family House with Garden',
+    type: 'house',
+    status: 'pending',
+    price: 450000,
+    location: 'Suburb, Chicago',
+    createdAt: '2025-03-10T14:45:00Z',
+  },
+  {
+    id: 'prop3',
+    title: 'Studio Loft in Art District',
+    type: 'condo',
+    status: 'inactive',
+    price: 180000,
+    location: 'Art District, Los Angeles',
+    createdAt: '2025-02-28T09:15:00Z',
+  }
+];
+
 const AdminPage = () => {
   const navigate = useNavigate();
   const { user, isAdmin, removeProperty } = useAuth();
@@ -35,14 +66,14 @@ const AdminPage = () => {
       return;
     }
     
-    // Simulate fetching real properties
+    // Fetch properties
     const fetchProperties = async () => {
       try {
-        // In a real app, this would be an API call
+        // In a real app, this would be an API call to fetch user-added properties
         await new Promise(resolve => setTimeout(resolve, 800));
         
-        // Start with an empty list - no dummy data
-        setProperties([]);
+        // Using mock data for demonstration
+        setProperties(mockProperties);
         setIsLoading(false);
       } catch (error) {
         toast({
@@ -61,11 +92,26 @@ const AdminPage = () => {
     const success = await removeProperty(propertyId);
     if (success) {
       setProperties(prev => prev.filter(p => p.id !== propertyId));
+      toast({
+        title: "Property Removed",
+        description: "The property has been successfully removed.",
+      });
     }
   };
   
-  const handleAddProperty = () => {
-    navigate('/add-property');
+  const handleUpdatePropertyStatus = (propertyId: string, newStatus: 'active' | 'pending' | 'inactive') => {
+    setProperties(prev => 
+      prev.map(property => 
+        property.id === propertyId 
+          ? { ...property, status: newStatus } 
+          : property
+      )
+    );
+    
+    toast({
+      title: "Status Updated",
+      description: `Property status changed to ${newStatus}.`,
+    });
   };
   
   const handleEditProperty = (propertyId: string) => {
@@ -73,8 +119,12 @@ const AdminPage = () => {
       title: "Edit Property",
       description: `Navigating to edit property ${propertyId}`,
     });
-    // In a real app, this would navigate to an edit page
+    // In a real app, this would navigate to an edit page or open a modal
     // navigate(`/edit-property/${propertyId}`);
+  };
+  
+  const handleAddProperty = () => {
+    navigate('/add-property');
   };
   
   return (
@@ -89,6 +139,7 @@ const AdminPage = () => {
             onAddProperty={handleAddProperty}
             onEditProperty={handleEditProperty}
             onRemoveProperty={handleRemoveProperty}
+            onUpdateStatus={handleUpdatePropertyStatus}
           />
         </div>
       </div>

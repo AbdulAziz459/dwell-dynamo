@@ -1,3 +1,4 @@
+
 import { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { authenticateUser, users } from '@/lib/data';
@@ -9,7 +10,7 @@ export interface AuthUser {
   email: string;
   phone?: string;
   image?: string;
-  role?: 'user' | 'admin';
+  role: 'user' | 'admin';
   favorites: string[];
   searchHistory: {
     query: string;
@@ -24,7 +25,6 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   register: (name: string, email: string, password: string) => Promise<boolean>;
-  googleSignIn: () => Promise<boolean>;
   addToFavorites: (propertyId: string) => void;
   removeFromFavorites: (propertyId: string) => void;
   isPropertyFavorite: (propertyId: string) => boolean;
@@ -65,17 +65,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       const result = authenticateUser(email, password);
       if (result.success && result.user) {
+        // Determine role based on email
+        const role = email.includes('admin') ? 'admin' : 'user';
+        
         setUser({
           ...result.user as AuthUser,
-          role: email.includes('admin') ? 'admin' : 'user' // Simple role assignment for demo
+          role // Set the role based on email
         });
+        
         localStorage.setItem('user', JSON.stringify({
           ...result.user,
-          role: email.includes('admin') ? 'admin' : 'user'
+          role
         }));
+        
         toast({
           title: "Login successful",
-          description: `Welcome back, ${result.user.name}!`,
+          description: `Welcome back, ${result.user.name}! You're logged in as ${role}.`,
         });
         return true;
       } else {
@@ -124,13 +129,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return false;
       }
       
+      // Determine role based on email (for demo purposes)
+      const role = email.includes('admin') ? 'admin' : 'user';
+      
       // In a real app, this would be a server call to create a new user
       // For this demo, we'll just create a new user object
       const newUser: AuthUser = {
         id: `u${users.length + 1}`,
         name,
         email,
-        role: 'user', // Default role
+        role,
         favorites: [],
         searchHistory: []
       };
@@ -140,7 +148,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       toast({
         title: "Registration successful",
-        description: `Welcome, ${name}!`,
+        description: `Welcome, ${name}! You've been registered as a ${role}.`,
       });
       return true;
     } catch (error) {
@@ -148,44 +156,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         variant: "destructive",
         title: "Registration failed",
         description: "An unexpected error occurred.",
-      });
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
-  // Simulated Google sign-in
-  const googleSignIn = async (): Promise<boolean> => {
-    setIsLoading(true);
-    try {
-      // Simulate network delay for the OAuth process
-      await new Promise(resolve => setTimeout(resolve, 1200));
-      
-      // Mock Google user data
-      const googleUser: AuthUser = {
-        id: `g${Date.now()}`,
-        name: "Google User",
-        email: `user${Math.floor(Math.random() * 1000)}@gmail.com`,
-        image: "https://lh3.googleusercontent.com/a/default-user",
-        role: 'user',
-        favorites: [],
-        searchHistory: []
-      };
-      
-      setUser(googleUser);
-      localStorage.setItem('user', JSON.stringify(googleUser));
-      
-      toast({
-        title: "Google Sign-in successful",
-        description: `Welcome, ${googleUser.name}!`,
-      });
-      return true;
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Google Sign-in failed",
-        description: "An error occurred during Google authentication.",
       });
       return false;
     } finally {
@@ -324,7 +294,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         login, 
         logout, 
         register,
-        googleSignIn,
         addToFavorites, 
         removeFromFavorites, 
         isPropertyFavorite, 

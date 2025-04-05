@@ -107,7 +107,8 @@ const Navbar = () => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem asChild>
-                    <Link to="/login" className="w-full flex items-center gap-2 text-sm">
+                    <Link to="/login" className="w-full flex items-center gap-2 text-sm"
+                      onClick={() => localStorage.setItem('loginRole', 'user')}>
                       <User size={16} />
                       <div>
                         <div>User Login</div>
@@ -117,10 +118,7 @@ const Navbar = () => {
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link to="/login" className="w-full flex items-center gap-2 text-sm" 
-                      onClick={() => {
-                        // In a real app, this would set a flag to pre-fill admin login
-                        localStorage.setItem('loginType', 'admin');
-                      }}>
+                      onClick={() => localStorage.setItem('loginRole', 'admin')}>
                       <Shield size={16} />
                       <div>
                         <div>Admin Login</div>
@@ -204,7 +202,10 @@ const Navbar = () => {
                         <Link
                           to="/login"
                           className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 px-3 py-2 text-base font-medium"
-                          onClick={() => setIsOpen(false)}
+                          onClick={() => {
+                            localStorage.setItem('loginRole', 'user');
+                            setIsOpen(false);
+                          }}
                         >
                           <User size={18} />
                           <span>User Login</span>
@@ -213,7 +214,7 @@ const Navbar = () => {
                           to="/login"
                           className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 px-3 py-2 text-base font-medium"
                           onClick={() => {
-                            localStorage.setItem('loginType', 'admin');
+                            localStorage.setItem('loginRole', 'admin');
                             setIsOpen(false);
                           }}
                         >

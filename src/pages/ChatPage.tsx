@@ -16,7 +16,7 @@ const ChatPage = () => {
               AI Property Assistant
             </h1>
             <p className="text-gray-400 mt-2">
-              Get expert answers to your property queries from our AI-powered chatbot
+              Get expert answers to your property queries from our Gemini-powered AI assistant
             </p>
           </div>
           
@@ -31,7 +31,7 @@ const ChatPage = () => {
                 <div>
                   <h2 className="text-xl font-heading font-semibold text-white">About the AI Property Assistant</h2>
                   <p className="text-gray-400 mt-2">
-                    Our AI-powered Property Assistant uses advanced language models to help you navigate the real estate market in Islamabad. 
+                    Our AI-powered Property Assistant uses Google's Gemini language model to help you navigate the real estate market in Islamabad. 
                     It can answer questions about buying, renting, and investing in properties, as well as provide
                     information about current property rates in different areas. Ask any property-related question and get accurate, 
                     up-to-date information instantly. For more complex inquiries or personalized assistance, 

@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,9 +9,9 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { chatbotResponses } from '@/lib/data';
 import { Send, Bot, Home, User, HelpCircle, MessageSquare, Building, MapPin, BarChart, Loader2, Settings, BrainCircuit } from 'lucide-react';
 import { Message, SuggestedQuery } from '@/lib/types';
-import { generateAIResponse } from '@/lib/openai';
+import { generateAIResponse } from '@/lib/gemini';
 import { AssistantLogo } from '@/components/ui/assistant-logo';
-import { toast } from '@/hooks/use-toast';
+import { toast } from '@/components/ui/use-toast';
 import { generateLocalResponse } from '@/lib/localChatbot';
 import { Switch } from '@/components/ui/switch';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -99,7 +100,7 @@ const PropertyChatbot = () => {
       let botResponse: string;
       
       if (useAI) {
-        // Get response from OpenAI API
+        // Get response from Gemini API
         botResponse = await generateAIResponse(text);
       } else {
         // Use local response generation
@@ -183,7 +184,7 @@ const PropertyChatbot = () => {
                   <div className="rounded-lg bg-gray-800 p-4 text-sm">
                     <p className="text-gray-300">
                       {useAI 
-                        ? "The assistant is using OpenAI to generate responses. This provides more accurate and contextual answers but requires an API key."
+                        ? "The assistant is using Google Gemini to generate responses. This provides more accurate and contextual answers but requires an API key."
                         : "The assistant is using local responses. These are pre-defined answers that may be less specific but don't require an API connection."
                       }
                     </p>
@@ -320,7 +321,7 @@ const PropertyChatbot = () => {
             <div className="flex items-center space-x-2 mt-2">
               <BrainCircuit size={14} className={useAI ? "text-teal-400" : "text-gray-500"} />
               <span className="text-xs text-gray-400">
-                {useAI ? "AI-powered responses" : "Local responses"}
+                {useAI ? "Gemini AI-powered responses" : "Local responses"}
               </span>
             </div>
             
@@ -483,7 +484,7 @@ const PropertyChatbot = () => {
       </Tabs>
       
       <CardFooter className="px-4 py-2 border-t border-gray-800 bg-gray-900 flex justify-between text-xs text-gray-400">
-        <span>Powered by {useAI ? "OpenAI" : "Local Data"}</span>
+        <span>Powered by {useAI ? "Google Gemini" : "Local Data"}</span>
         <div className="flex items-center">
           <AssistantLogo size={12} className="mr-1" />
           <span>Property Expert v1.0</span>

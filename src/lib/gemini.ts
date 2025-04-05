@@ -2,10 +2,12 @@
 import { chatbotResponses } from './data';
 import { generateLocalResponse } from './localChatbot';
 
-interface OpenAIResponse {
-  choices: {
-    message: {
-      content: string;
+interface GeminiResponse {
+  candidates: {
+    content: {
+      parts: {
+        text: string;
+      }[];
     };
   }[];
 }
@@ -28,38 +30,48 @@ acknowledge it and provide general guidance instead.
 export const generateAIResponse = async (userMessage: string): Promise<string> => {
   try {
     // Check if API key is available
-    const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
     
     if (!apiKey) {
-      console.warn('OpenAI API key not found, using fallback responses');
+      console.warn('Gemini API key not found, using fallback responses');
       return generateLocalResponse(userMessage, chatbotResponses);
     }
     
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=' + apiKey, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user', content: userMessage }
+        contents: [
+          {
+            role: 'user',
+            parts: [
+              { text: SYSTEM_PROMPT },
+              { text: userMessage }
+            ]
+          }
         ],
-        temperature: 0.7,
-        max_tokens: 500,
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 500,
+        },
       }),
     });
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.error('OpenAI API Error:', errorData);
-      throw new Error(`OpenAI API error: ${errorData.error?.message || 'Unknown error'}`);
+      console.error('Gemini API Error:', errorData);
+      throw new Error(`Gemini API error: ${errorData.error?.message || 'Unknown error'}`);
     }
 
-    const data = await response.json() as OpenAIResponse;
-    return data.choices[0].message.content;
+    const data = await response.json() as GeminiResponse;
+    
+    if (!data.candidates || data.candidates.length === 0) {
+      throw new Error('No response generated');
+    }
+    
+    return data.candidates[0].content.parts[0].text;
   } catch (error) {
     console.error('Error generating AI response:', error);
     
